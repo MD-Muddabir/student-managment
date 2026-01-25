@@ -1,528 +1,492 @@
-// DOM Elements
-const container = document.getElementById('container');
-const signUpButton = document.getElementById('signUp');
-const signInButton = document.getElementById('signIn');
+/* ========================================
+   STUDENT MANAGEMENT SYSTEM - SCRIPT
+   Interactive Dashboard Functionality
+   ======================================== */
 
-// --- Animation / State Switching ---
-if (signUpButton) {
-    signUpButton.addEventListener('click', () => {
-        container.classList.add("right-panel-active");
-    });
-}
+// ========== GLOBAL STATE ==========
+let currentSection = 'dashboard';
+let studentsData = [];
 
-if (signInButton) {
-    signInButton.addEventListener('click', () => {
-        container.classList.remove("right-panel-active");
-    });
-}
+// ========== DOM ELEMENTS ==========
+const sidebar = document.getElementById('sidebar');
+const menuToggle = document.getElementById('menuToggle');
+const menuItems = document.querySelectorAll('.menu-item');
+const contentSections = document.querySelectorAll('.content-section');
+const pageTitle = document.getElementById('pageTitle');
+const logoutBtn = document.getElementById('logoutBtn');
 
-// --- Registration Logic ---
-const regForm = document.getElementById('regForm');
-if (regForm) {
-    regForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        validateRegistration();
-    });
-
-    // Clear errors on input
-    regForm.querySelectorAll('input, select').forEach(input => {
-        input.addEventListener('input', () => {
-            clearError(input);
-        });
-    });
-}
-
-function validateRegistration() {
-    let valid = true;
-
-    // Validate Fields
-    valid &= validateRequired('firstName', 'Type your First Name');
-    valid &= validateRequired('lastName', 'Type your Last Name');
-    valid &= validateRequired('dob', 'Select your Birthday');
-    valid &= validateGender();
-    valid &= validateEmail('regEmail');
-    valid &= validatePassword('regPassword');
-    valid &= validatePhone('phone');
-    valid &= validateRequired('subject', 'Choose a subject');
-
-    if (valid) {
-        // Success
-        alert("✅ Registration Successful!");
-        regForm.reset();
-        // Slide back to login automatically
-        container.classList.remove("right-panel-active");
-    }
-}
-
-// --- Login Logic ---
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        validateLogin();
-    });
-
-    loginForm.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', () => {
-            clearError(input);
-        });
-    });
-}
-
-function validateLogin() {
-    let valid = true;
-    valid &= validateEmail('loginEmail');
-    valid &= validateRequired('loginPassword', 'Enter Password');
-
-    if (valid) {
-        // Mock Login Success
-        alert("✅ Login successful");
-        loginForm.reset();
-        // Redirect: window.location.href = "../index.html";
-    }
-}
-
-// --- Validation Helpers ---
-
-function validateRequired(id, msg) {
-    const input = document.getElementById(id);
-    if (!input) return true; // Safety
-    const val = input.value.trim();
-    if (val === "") {
-        setError(input, msg);
-        return false;
-    }
-    return true;
-}
-
-function validateEmail(id) {
-    const input = document.getElementById(id);
-    if (!input) return true;
-    const val = input.value.trim();
-    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (val === "") {
-        setError(input, "Email is required");
-        return false;
-    } else if (!pattern.test(val)) {
-        setError(input, "Invalid email address");
-        return false;
-    }
-    return true;
-}
-
-function validatePhone(id) {
-    const input = document.getElementById(id);
-    if (!input) return true;
-    const val = input.value.trim();
-    // Simple 10 digit check
-    const pattern = /^[0-9]{10}$/;
-
-    if (val === "" || !pattern.test(val)) {
-        setError(input, "Enter a valid 10-digit phone");
-        return false;
-    }
-    return true;
-}
-
-function validateGender() {
-    const genderGroup = document.getElementsByName('gender');
-    let checked = false;
-    for (const rb of genderGroup) {
-        if (rb.checked) checked = true;
-    }
-
-    const container = document.querySelector('.gender-group');
-    const errorText = document.getElementById('genderError');
-
-    if (!checked) {
-        if (errorText) {
-            errorText.style.display = "block";
-            errorText.innerText = "Please select gender";
-        }
-        return false;
-    } else {
-        if (errorText) errorText.style.display = "none";
-        return true;
-    }
-}
-
-function setError(input, msg) {
-    input.classList.add('error');
-    const group = input.closest('.input-group');
-    if (group) {
-        const err = group.querySelector('.error-text');
-        if (err) {
-            err.innerText = msg;
-            err.style.display = 'block';
-        }
-    }
-}
-
-function clearError(input) {
-    input.classList.remove('error');
-    const group = input.closest('.input-group');
-    if (group) {
-        const err = group.querySelector('.error-text');
-        if (err) {
-            err.style.display = 'none';
-        }
-    }
-}
-
-// --- Student Management Logic ---
+// ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', () => {
-    const tableBody = document.getElementById('studentTableBody');
-    if (!tableBody) return; // Only run if on the management page
-
-    // Mock Data
-    let students = [
-        { id: 1, name: "Thomas Hardy", email: "thomashardy@mail.com", subject: "Mathematics", birthday: "2005-05-15" },
-        { id: 2, name: "Dominique Perrier", email: "dominiqueperrier@mail.com", subject: "Physics", birthday: "2004-03-22" },
-        { id: 3, name: "Maria Anders", email: "mariaanders@mail.com", subject: "Chemistry", birthday: "2005-01-10" },
-        { id: 4, name: "Fran Wilson", email: "franwilson@mail.com", subject: "Computer Science", birthday: "2003-11-20" },
-        { id: 5, name: "Martin Blank", email: "martinblank@mail.com", subject: "English", birthday: "2004-07-05" }
-    ];
-
-    let currentPage = 1;
-    const rowsPerPage = 5;
-    let selectedIds = [];
-    let deleteId = null; // For single delete
-
-    // Initialization
-    renderTable();
-
-    // Event Listeners
-    const addNewBtn = document.getElementById('addNewBtn');
-    if (addNewBtn) {
-        addNewBtn.addEventListener('click', () => {
-            $('#addEmployeeModal').modal('show');
-        });
-    }
-
-    const multiDeleteBtn = document.getElementById('multiDeleteBtn');
-    if (multiDeleteBtn) {
-        multiDeleteBtn.addEventListener('click', () => {
-            if (selectedIds.length > 0) {
-                deleteId = null; // reset single delete
-                $('#deleteEmployeeModal').modal('show');
-            } else {
-                alert("Please select at least one student to delete.");
-            }
-        });
-    }
-
-    const selectAll = document.getElementById('selectAll');
-    if (selectAll) {
-        selectAll.addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('.student-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = e.target.checked;
-                handleCheckboxChange(cb);
-            });
-        });
-    }
-
-    // Add Student
-    const addStudentForm = document.getElementById('addStudentForm');
-    if (addStudentForm) {
-        addStudentForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newStudent = {
-                id: students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1,
-                name: document.getElementById('addName').value,
-                email: document.getElementById('addEmail').value,
-                subject: document.getElementById('addSubject').value,
-                birthday: document.getElementById('addDob').value
-            };
-            students.push(newStudent);
-            $('#addEmployeeModal').modal('hide');
-            addStudentForm.reset();
-            renderTable();
-        });
-    }
-
-    // Edit Student
-    const editStudentForm = document.getElementById('editStudentForm');
-    if (editStudentForm) {
-        editStudentForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = parseInt(document.getElementById('editId').value);
-            const index = students.findIndex(s => s.id === id);
-            if (index !== -1) {
-                students[index].name = document.getElementById('editName').value;
-                students[index].email = document.getElementById('editEmail').value;
-                students[index].subject = document.getElementById('editSubject').value;
-                students[index].birthday = document.getElementById('editDob').value;
-
-                $('#editEmployeeModal').modal('hide');
-                renderTable();
-            }
-        });
-    }
-
-    // Delete Student (Confirm)
-    const deleteStudentForm = document.getElementById('deleteStudentForm');
-    if (deleteStudentForm) {
-        deleteStudentForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (deleteId) {
-                // Single Delete
-                students = students.filter(s => s.id !== deleteId);
-            } else {
-                // Multi Delete
-                students = students.filter(s => !selectedIds.includes(s.id));
-            }
-            deleteId = null;
-            selectedIds = [];
-            if (selectAll) selectAll.checked = false;
-            $('#deleteEmployeeModal').modal('hide');
-            renderTable();
-        });
-    }
-
-    // Functions
-    function renderTable() {
-        if (!tableBody) return;
-        tableBody.innerHTML = '';
-        const start = (currentPage - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-        const paginatedItems = students.slice(start, end);
-
-        if (paginatedItems.length === 0 && currentPage > 1) {
-            currentPage--;
-            renderTable();
-            return;
-        }
-
-        paginatedItems.forEach(student => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <span class="custom-checkbox">
-                        <input type="checkbox" class="student-checkbox" id="checkbox${student.id}" value="${student.id}" ${selectedIds.includes(student.id) ? 'checked' : ''}>
-                        <label for="checkbox${student.id}"></label>
-                    </span>
-                </td>
-                <td>${student.name}</td>
-                <td>${student.email}</td>
-                <td>${student.subject}</td>
-                <td>${student.birthday}</td>
-                <td>
-                    <a href="#" class="edit" data-id="${student.id}"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="Edit"></i></a>
-                    <a href="#" class="delete" data-id="${student.id}"><i class="fas fa-trash" data-toggle="tooltip" title="Delete"></i></a>
-                </td>
-            `;
-            tableBody.appendChild(row);
-
-            // Bind events for this row
-            const checkbox = row.querySelector('.student-checkbox');
-            checkbox.addEventListener('change', () => handleCheckboxChange(checkbox));
-
-            const editBtn = row.querySelector('.edit');
-            editBtn.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevent default anchor behavior
-                loadEditData(student.id);
-            });
-
-            const deleteBtn = row.querySelector('.delete');
-            deleteBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                deleteId = student.id;
-                $('#deleteEmployeeModal').modal('show');
-            });
-        });
-
-        updatePagination();
-        updateEntryInfo();
-    }
-
-    function handleCheckboxChange(checkbox) {
-        const id = parseInt(checkbox.value);
-        if (checkbox.checked) {
-            if (!selectedIds.includes(id)) selectedIds.push(id);
-        } else {
-            selectedIds = selectedIds.filter(item => item !== id);
-        }
-    }
-
-    function loadEditData(id) {
-        const student = students.find(s => s.id === id);
-        if (student) {
-            document.getElementById('editId').value = student.id;
-            document.getElementById('editName').value = student.name;
-            document.getElementById('editEmail').value = student.email;
-            document.getElementById('editPassword').value = student.password;
-            document.getElementById('editSubject').value = student.subject;
-            document.getElementById('editDob').value = student.birthday;
-            $('#editEmployeeModal').modal('show');
-        }
-    }
-
-    function updateEntryInfo() {
-        const total = students.length;
-        const start = (currentPage - 1) * rowsPerPage + 1;
-        let end = start + rowsPerPage - 1;
-        if (end > total) end = total;
-
-        const currentCountEl = document.getElementById('currentCount');
-        const totalCountEl = document.getElementById('totalCount');
-
-        if (currentCountEl) {
-            if (total === 0) currentCountEl.innerText = '0-0';
-            else currentCountEl.innerText = `${start}-${end}`;
-        }
-        if (totalCountEl) totalCountEl.innerText = total;
-    }
-
-    function updatePagination() {
-        const totalPages = Math.ceil(students.length / rowsPerPage);
-        const pagination = document.getElementById('paginationControls');
-        if (!pagination) return;
-        pagination.innerHTML = '';
-
-        // Previous
-        const prevLi = document.createElement('li');
-        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-        prevLi.innerHTML = `<a href="#" class="page-link">Previous</a>`;
-        prevLi.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (currentPage > 1) {
-                currentPage--;
-                renderTable();
-            }
-        });
-        pagination.appendChild(prevLi);
-
-        // Pages
-        for (let i = 1; i <= totalPages; i++) {
-            const li = document.createElement('li');
-            li.className = `page-item ${currentPage === i ? 'active' : ''}`;
-            li.innerHTML = `<a href="#" class="page-link">${i}</a>`;
-            li.addEventListener('click', (e) => {
-                e.preventDefault();
-                currentPage = i;
-                renderTable();
-            });
-            pagination.appendChild(li);
-        }
-
-        // Next
-        const nextLi = document.createElement('li');
-        nextLi.className = `page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}`;
-        nextLi.innerHTML = `<a href="#" class="page-link">Next</a>`;
-        nextLi.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderTable();
-            }
-        });
-        pagination.appendChild(nextLi);
-    }
+    initializeClock();
+    initializeNavigation();
+    initializeLogout();
+    fetchStudents();
+    updateAnalytics();
+    
+    // Start clock update
+    setInterval(updateClock, 1000);
 });
 
-// --- Navigation Logic ---
-document.addEventListener('DOMContentLoaded', () => {
-    // Nav Links
-    const navLinks = {
-        'nav-home': 'home-section',
-        'nav-about': 'about-section',
-        'nav-database': 'database-section',
-        'nav-profile': 'profile-section'
+// ========== CLOCK FUNCTIONALITY ==========
+function initializeClock() {
+    updateClock();
+}
+
+function updateClock() {
+    const now = new Date();
+    
+    // Time
+    const timeOptions = { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: true 
     };
+    const timeString = now.toLocaleTimeString('en-US', timeOptions);
+    
+    // Date
+    const dateOptions = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    };
+    const dateString = now.toLocaleDateString('en-US', dateOptions);
+    
+    // Update DOM
+    const timeDisplay = document.getElementById('currentTime');
+    const dateDisplay = document.getElementById('currentDate');
+    
+    if (timeDisplay) timeDisplay.textContent = timeString;
+    if (dateDisplay) dateDisplay.textContent = dateString;
+}
 
-    Object.keys(navLinks).forEach(navId => {
-        const link = document.getElementById(navId);
-        if (link) {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-
-                // Remove active class from all links
-                document.querySelectorAll('.navbar-nav .nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                // Add active class to clicked link parent
-                link.parentElement.classList.add('active');
-
-                // Hide all sections
-                document.querySelectorAll('.content-section').forEach(section => {
-                    section.style.display = 'none';
-                });
-
-                // Show target section
-                const targetId = navLinks[navId];
-                const targetSection = document.getElementById(targetId);
-                if (targetSection) {
-                    targetSection.style.display = 'block';
-                }
-            });
-        }
+// ========== NAVIGATION ==========
+function initializeNavigation() {
+    // Menu toggle for mobile
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+    }
+    
+    // Menu item clicks
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const section = item.getAttribute('data-section');
+            switchSection(section);
+            
+            // Update active state
+            menuItems.forEach(mi => mi.classList.remove('active'));
+            item.classList.add('active');
+            
+            // Close sidebar on mobile
+            if (window.innerWidth <= 992) {
+                sidebar.classList.remove('active');
+            }
+        });
     });
+}
 
-    // Logout Logic
-    const logoutBtn = document.getElementById('logoutBtn');
+function switchSection(sectionName) {
+    currentSection = sectionName;
+    
+    // Hide all sections
+    contentSections.forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show selected section
+    const targetSection = document.getElementById(`${sectionName}-section`);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+    
+    // Update page title
+    updatePageTitle(sectionName);
+}
+
+function updatePageTitle(section) {
+    const titles = {
+        'dashboard': 'Faculty Portal',
+        'students': 'Manage Students',
+        'personnel': 'Add Personnel',
+        'sections': 'Manage Sections',
+        'subjects': 'Manage Subjects',
+        'strands': 'Manage Strands',
+        'teachers': 'Manage Teachers',
+        'inactive': 'Inactive Students',
+        'account': 'Account Settings'
+    };
+    
+    if (pageTitle) {
+        pageTitle.textContent = titles[section] || 'Faculty Portal';
+    }
+}
+
+// ========== LOGOUT ==========
+function initializeLogout() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            if (confirm("Are you sure you want to logout?")) {
-                alert("Logged out successfully!");
-                // Assuming script.js is in frontend/js/, adjust relative path
-                window.location.href = "./component/Login.html";
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear any stored data
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Redirect to login page
+                window.location.href = './component/Login.html';
             }
         });
     }
-});
-
-
-
-
-
-
-
-
-
-
-
-// ***********************************  FETCH STUDENT DATA   **************************************************
-
-fetch("http://localhost:3000/students")
-    .then(res => res.json())
-    .then(result => {
-        if (!result.success) {
-            alert("Failed to load students");
-            return;
-        }
-
-        const tbody = document.getElementById("studentTableBody");
-        tbody.innerHTML = "";
-
-        result.data.forEach(student => {
-            const tr = document.createElement("tr");
-            const row = `
-            <tr>
-                <td>${student.SID}</td>
-                <td>${student.sname}</td>
-                <td>${student.semail}</td>
-                <td>${student.gender}</td>
-                <td>${formatDOB(student.dob)}</td>
-                <td>${student.sphone}</td>
-                <td>${student.Cname}</td>
-                <td>${student.created_at}</td>
-                
-            </tr>
-        `;
-            tr.innerHTML = row;
-            tbody.appendChild(tr);
-        });
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error fetching data");
-    });
-
-function formatDOB(dateStr) {
-    if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("en-IN");
 }
 
+// ========== STUDENTS DATA ==========
+async function fetchStudents() {
+    try {
+        const response = await fetch('http://localhost:3000/students');
+        const result = await response.json();
+        
+        if (result.success) {
+            studentsData = result.data;
+            renderStudentsTable();
+            updateAnalytics();
+        } else {
+            console.error('Failed to fetch students:', result.message);
+            // Show sample data if API fails
+            loadSampleData();
+        }
+    } catch (error) {
+        console.error('Error fetching students:', error);
+        // Show sample data if API fails
+        loadSampleData();
+    }
+}
 
+function loadSampleData() {
+    studentsData = [
+        {
+            SID: 1,
+            sname: 'John Doe',
+            semail: 'john@example.com',
+            gender: 'Male',
+            dob: '2000-05-15',
+            sphone: '1234567890',
+            Cname: 'Computer Science'
+        },
+        {
+            SID: 2,
+            sname: 'Jane Smith',
+            semail: 'jane@example.com',
+            gender: 'Female',
+            dob: '2001-08-22',
+            sphone: '0987654321',
+            Cname: 'Mathematics'
+        },
+        {
+            SID: 3,
+            sname: 'Alice Johnson',
+            semail: 'alice@example.com',
+            gender: 'Female',
+            dob: '2000-12-10',
+            sphone: '5551234567',
+            Cname: 'Physics'
+        },
+        {
+            SID: 4,
+            sname: 'Bob Williams',
+            semail: 'bob@example.com',
+            gender: 'Male',
+            dob: '1999-03-18',
+            sphone: '5559876543',
+            Cname: 'Chemistry'
+        },
+        {
+            SID: 5,
+            sname: 'Emma Brown',
+            semail: 'emma@example.com',
+            gender: 'Female',
+            dob: '2001-07-25',
+            sphone: '5555555555',
+            Cname: 'Biology'
+        },
+        {
+            SID: 6,
+            sname: 'Michael Davis',
+            semail: 'michael@example.com',
+            gender: 'Male',
+            dob: '2000-11-30',
+            sphone: '5554443333',
+            Cname: 'English'
+        },
+        {
+            SID: 7,
+            sname: 'Sarah Wilson',
+            semail: 'sarah@example.com',
+            gender: 'Female',
+            dob: '2001-02-14',
+            sphone: '5556667777',
+            Cname: 'History'
+        }
+    ];
+    
+    renderStudentsTable();
+    updateAnalytics();
+}
+
+function renderStudentsTable() {
+    const tbody = document.getElementById('studentsTableBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (studentsData.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center">No students found</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    studentsData.forEach(student => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <input type="checkbox" class="student-checkbox" data-id="${student.SID}">
+            </td>
+            <td>${student.SID}</td>
+            <td>${student.sname}</td>
+            <td>${student.semail}</td>
+            <td>${student.gender || 'N/A'}</td>
+            <td>${formatDate(student.dob)}</td>
+            <td>${student.sphone || 'N/A'}</td>
+            <td>${student.Cname || 'N/A'}</td>
+            <td>
+                <button class="btn-icon" onclick="editStudent(${student.SID})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon delete" onclick="deleteStudent(${student.SID})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+// ========== ANALYTICS ==========
+function updateAnalytics() {
+    // Count students
+    const totalStudents = studentsData.length;
+    
+    // Update dashboard cards
+    const studentsCard = document.getElementById('totalStudents');
+    const teachersCard = document.getElementById('totalTeachers');
+    const CoursesCard = document.getElementById('totalCoursses');
+    const totalCard = document.getElementById('totalUsers');
+    
+    if (studentsCard) studentsCard.textContent = totalStudents;
+    if (teachersCard) teachersCard.textContent = '2'; // Static for now
+    if (CoursesCard) CoursesCard.textContent = '1'; // Static for now
+    if (totalCard) totalCard.textContent = totalStudents + 3; // Total
+}
+
+// ========== STUDENT CRUD OPERATIONS ==========
+function editStudent(id) {
+    const student = studentsData.find(s => s.SID === id);
+    if (!student) {
+        alert('Student not found!');
+        return;
+    }
+    
+    // For now, just show an alert
+    alert(`Edit Student: ${student.sname}\n\nThis feature will open an edit modal.`);
+    
+    // TODO: Implement edit modal
+}
+
+async function deleteStudent(id) {
+    if (!confirm('Are you sure you want to delete this student?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`http://localhost:3000/students/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.message === 'Student deleted') {
+            alert('Student deleted successfully!');
+            fetchStudents(); // Refresh the list
+        } else {
+            alert('Failed to delete student');
+        }
+    } catch (error) {
+        console.error('Error deleting student:', error);
+        alert('Error deleting student. Please try again.');
+    }
+}
+
+// Add Student Button
+const addStudentBtn = document.getElementById('addStudentBtn');
+if (addStudentBtn) {
+    addStudentBtn.addEventListener('click', () => {
+        alert('Add Student feature coming soon!\n\nThis will open a modal to add a new student.');
+        // TODO: Implement add student modal
+    });
+}
+
+// ========== SELECT ALL CHECKBOX ==========
+const selectAllCheckbox = document.getElementById('selectAll');
+if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', (e) => {
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = e.target.checked;
+        });
+    });
+}
+
+// ========== ACTIVITIES FUNCTIONALITY ==========
+const activityInput = document.querySelector('.activity-input input');
+const btnAdd = document.querySelector('.btn-add');
+const activitiesList = document.getElementById('activitiesList');
+
+if (btnAdd && activityInput) {
+    btnAdd.addEventListener('click', addActivity);
+    activityInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addActivity();
+        }
+    });
+}
+
+function addActivity() {
+    const text = activityInput.value.trim();
+    if (!text) return;
+    
+    const activityItem = document.createElement('div');
+    activityItem.className = 'activity-item';
+    activityItem.innerHTML = `
+        <span>${text}</span>
+        <div class="activity-actions">
+            <button class="btn-check" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-check"></i>
+            </button>
+            <button class="btn-trash" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    
+    activitiesList.appendChild(activityItem);
+    activityInput.value = '';
+}
+
+// ========== ANNOUNCEMENTS ==========
+const btnPost = document.querySelector('.btn-post');
+if (btnPost) {
+    btnPost.addEventListener('click', () => {
+        const announcement = prompt('Enter announcement text:');
+        if (!announcement) return;
+        
+        const announcementsList = document.getElementById('announcementsList');
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: '2-digit' 
+        });
+        const timeStr = now.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+        
+        const newAnnouncement = document.createElement('div');
+        newAnnouncement.className = 'announcement-item';
+        newAnnouncement.innerHTML = `
+            <div class="announcement-header">
+                <h4>New Announcement</h4>
+                <button class="btn-delete" onclick="this.parentElement.parentElement.remove()">Delete</button>
+            </div>
+            <p class="announcement-text">${announcement}</p>
+            <p class="announcement-meta">Mark Calendario on ${dateStr} at ${timeStr}</p>
+        `;
+        
+        announcementsList.insertBefore(newAnnouncement, announcementsList.firstChild);
+    });
+}
+
+// ========== RESPONSIVE SIDEBAR ==========
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 992) {
+        sidebar.classList.remove('active');
+    }
+});
+
+// ========== SMOOTH ANIMATIONS ==========
+// Add entrance animations to cards
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+// Observe all cards
+document.querySelectorAll('.analytics-card, .dashboard-card, .info-card').forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(card);
+});
+
+// ========== GREETING BASED ON TIME ==========
+function updateGreeting() {
+    const hour = new Date().getHours();
+    let greeting = 'Good evening';
+    
+    if (hour < 12) {
+        greeting = 'Good morning';
+    } else if (hour < 18) {
+        greeting = 'Good afternoon';
+    }
+    
+    const greetingCard = document.querySelector('.greeting-card h3');
+    if (greetingCard) {
+        const userName = document.getElementById('sidebarUserName')?.textContent.split(' ')[0] || 'User';
+        greetingCard.textContent = `${greeting}, ${userName}!`;
+    }
+}
+
+// Update greeting on load
+updateGreeting();
+
+// ========== CONSOLE LOG ==========
+console.log('%c🎓 Student Management System', 'color: #4f7cff; font-size: 20px; font-weight: bold;');
+console.log('%cDashboard loaded successfully!', 'color: #00c853; font-size: 14px;');
+console.log('%cCurrent Section:', currentSection);
+
+// ========== EXPORT FUNCTIONS FOR HTML ONCLICK ==========
+window.editStudent = editStudent;
+window.deleteStudent = deleteStudent;
