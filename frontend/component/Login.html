@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Sign Up</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- <link rel="stylesheet" href="../css/style.css"> -->
+    <link rel="stylesheet" href="../assets/css/Login.css">
+</head>
+
+<body>
+
+    <div class="container" id="container">
+
+        <!-- SIGN UP FORM (Technically hidden initially) -->
+        <div class="form-container sign-up-container">
+            <form id="signupForm">
+                <h1>Sign Up</h1>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-user icon-left"></i>
+                        <input type="text" id="uname" placeholder="Username" />
+                    </div>
+                    <small class="error-text">Username required</small>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope icon-left"></i>
+                        <input type="email" id="uemail" placeholder="Email" />
+                    </div>
+                    <small class="error-text">Valid email required</small>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock icon-left"></i>
+                        <input type="password" id="upassword" placeholder="Password" />
+                        <i class="fas fa-eye icon-right password-toggle" data-target="upassword"></i>
+                    </div>
+                    <small class="error-text">Password required</small>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-phone icon-left"></i>
+                        <input type="tel" id="uphone" placeholder="Phone Number" maxlength="10" inputmode="numeric"
+                            pattern="[0-9]{10}" />
+                    </div>
+                    <small class="error-text">Phone required</small>
+                </div>
+
+                <!-- <div class="input-group">
+                    <div class="select-wrapper input-wrapper">
+                        <i class="fas fa-book icon-left"></i>
+                        <select id="signupRole">
+                            <option value="null">Select Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                    <small class="error-text">Subject required</small>
+                </div> -->
+
+                <input type="hidden" id="signupRole" value="student">
+
+
+                <button class="action-btn" id="signUpSubmit" type="submit">Sign Up</button>
+                <span class="link-text mobile-only d-none">Already have an account? <a href="#"
+                        id="slide-login-btn">Login</a></span>
+            </form>
+        </div>
+
+        <!-- SIGN IN FORM (Default Visible) -->
+        <div class="form-container sign-in-container">
+            <form id="signinForm" onsubmit="return false;">
+                <h1>Login</h1>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-user icon-left"></i>
+                        <input type="text" id="si_username" placeholder="Username" />
+                    </div>
+                    <small class="error-text">Username required</small>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock icon-left"></i>
+                        <input type="password" id="si_password" placeholder="Password" />
+                        <i class="fas fa-eye icon-right password-toggle" data-target="si_password"></i>
+                    </div>
+                    <small class="error-text">Password required</small>
+                </div>
+
+                <div class="input-group">
+                    <div class="select-wrapper input-wrapper">
+                        <i class="fas fa-book icon-left"></i>
+                        <select id="signinRole">
+                            <option value="null">Select Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                    <small class="error-text">Subject required</small>
+                </div>
+
+
+                <button class="action-btn" id="signInSubmit" type="button">Login</button>
+                <span class="link-text">Don't have an account? <a href="#" id="slide-signup-btn">Sign up</a></span>
+            </form>
+        </div>
+
+        <!-- OVERLAY (The Moving Panel) -->
+        <div class="overlay-container">
+            <div class="overlay">
+
+                <!-- Left Overlay (Visible when seeing Sign Up Form) -->
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us please login with your personal info</p>
+                    <button class="ghost action-btn" id="signInGhost">Login</button>
+                </div>
+
+
+
+                <!-- Right Overlay (Visible when seeing Login Form) -->
+                <div class="overlay-panel overlay-right">
+                    <!-- User requested: "Welcome Back" on the right in original, but logic says this should invite to Sign Up -->
+                    <!-- The original image showed "Welcome Back" on the right. 
+                     We will keep the text generic or inviting. -->
+                    <h1>Hello, Friend!</h1>
+                    <p>Enter your personal details and start your journey with us</p>
+                    <button class="ghost action-btn" id="signUpGhost">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/Login.js"></script>
+
+</body>
+
+</html>
