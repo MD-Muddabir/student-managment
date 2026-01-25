@@ -15,13 +15,24 @@ exports.createUser = (data, callback) => {
     db.query(sql, data, callback);
 };
 
-// Find user by email
+// Find user by email with student details
 exports.findUserByEmail = (email, callback) => {
     const sql = `
-    SELECT UID, uname, uemail, upassword, role
-    FROM users
-    WHERE uemail = ?`;
+    SELECT u.UID, u.uname, u.uemail, u.upassword, u.role, s.sphone
+    FROM users u
+    LEFT JOIN students s ON u.uemail = s.semail
+    WHERE u.uemail = ?`;
     db.query(sql, [email], callback);
+};
+
+// Find user by ID for dashboard profile
+exports.findUserById = (id, callback) => {
+    const sql = `
+    SELECT u.UID, u.uname, u.uemail, u.role, s.sphone
+    FROM users u
+    LEFT JOIN students s ON u.uemail = s.semail
+    WHERE u.UID = ?`;
+    db.query(sql, [id], callback);
 };
 
 // Insert student
@@ -31,3 +42,5 @@ exports.createStudent = (data, callback) => {
     VALUES (?, ?, ?)`;
     db.query(sql, data, callback);
 };
+
+

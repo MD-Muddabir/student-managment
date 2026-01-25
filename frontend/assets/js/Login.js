@@ -224,9 +224,14 @@ function loginUser(e) {
         .then(res => res.json())
         .then(result => {
             if (result.success) {
-                alert("Login Successful! Welcome " + result.name);
+                // Remove localStorage usage
+                // localStorage.setItem('loggedInUser', JSON.stringify(result.user));
+
+                alert("Login Successful! Welcome " + result.user.name);
                 console.log("User:", result.user);
-                window.location.href = "../index.html";
+
+                // Redirect to dashboard with ID in URL
+                window.location.href = "../index.html?id=" + result.user.id;
             } else {
                 alert("Login failed: " + result.message);
             }

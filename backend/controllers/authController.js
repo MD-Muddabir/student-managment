@@ -93,7 +93,42 @@ exports.login = (req, res) => {
                 id: user.UID,
                 name: user.uname,
                 email: user.uemail,
-                role: user.role
+                role: user.role,
+                phone: user.sphone || 'N/A'
+            }
+        });
+    });
+};
+
+// ================= GET PROFILE =================
+exports.getProfile = (req, res) => {
+    const id = req.params.id;
+
+    userModel.findUserById(id, (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: err.sqlMessage
+            });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const user = results[0];
+
+        res.json({
+            success: true,
+            user: {
+                id: user.UID,
+                name: user.uname,
+                email: user.uemail,
+                role: user.role,
+                phone: user.sphone || 'N/A'
             }
         });
     });

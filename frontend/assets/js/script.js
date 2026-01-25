@@ -2,10 +2,12 @@
    STUDENT MANAGEMENT SYSTEM - SCRIPT
    Interactive Dashboard Functionality
    ======================================== */
+'use strict';
 
 // ========== GLOBAL STATE ==========
 let currentSection = 'dashboard';
 let studentsData = [];
+let loggedInUser = null;
 
 // ========== DOM ELEMENTS ==========
 const sidebar = document.getElementById('sidebar');
@@ -17,92 +19,125 @@ const logoutBtn = document.getElementById('logoutBtn');
 
 // ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', () => {
+    checkAuthentication();
+    loadUserData();
     initializeClock();
     initializeNavigation();
     initializeLogout();
-    fetchStudents();
-    updateAnalytics();
-    
+    fetchStudents(); // This handles updating analytics too
+
     // Start clock update
     setInterval(updateClock, 1000);
 });
 
-// ========== CLOCK FUNCTIONALITY ==========
+// ========== AUTHENTICATION ==========
+function checkAuthentication() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+
+    if (!userId) {
+        alert('Please login to access the dashboard');
+        window.location.href = './component/Login.html';
+    }
+}
+
+function loadUserData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+
+    if (userId) {
+        fetch(`http://localhost:3000/profile/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loggedInUser = data.user;
+                    updateUserDisplay();
+                } else {
+                    console.error('Failed to load user profile');
+                    alert('Session expired or invalid user');
+                    window.location.href = './component/Login.html';
+                }
+            })
+            .catch(error => console.error('Error fetching user profile:', error));
+    }
+}
+
+function updateUserDisplay() {
+    if (!loggedInUser) return;
+
+    // Sidebar user info
+    const sidebarUserName = document.getElementById('sidebarUserName');
+    const sidebarUserRole = document.getElementById('sidebarUserRole');
+
+    if (sidebarUserName) sidebarUserName.textContent = loggedInUser.name;
+    if (sidebarUserRole) sidebarUserRole.textContent = capitalize(loggedInUser.role);
+
+    // Welcome banner
+    const welcomeUserName = document.getElementById('welcomeUserName');
+    const welcomeUserRole = document.getElementById('welcomeUserRole');
+
+    if (welcomeUserName) welcomeUserName.textContent = loggedInUser.name;
+    if (welcomeUserRole) welcomeUserRole.textContent = capitalize(loggedInUser.role);
+
+    // Account Settings form
+    const settingsName = document.getElementById('settingsName');
+    const settingsEmail = document.getElementById('settingsEmail');
+    const settingsPhone = document.getElementById('settingsPhone');
+    const settingsRole = document.getElementById('settingsRole');
+
+    if (settingsName) settingsName.value = loggedInUser.name;
+    if (settingsEmail) settingsEmail.value = loggedInUser.email;
+    if (settingsPhone) settingsPhone.value = loggedInUser.phone || 'N/A';
+    if (settingsRole) settingsRole.value = capitalize(loggedInUser.role);
+
+    updateGreeting();
+
+    console.log('✅ User data loaded:', loggedInUser);
+}
+
+// ========== CLOCK FUNTIONALITY ==========
 function initializeClock() {
     updateClock();
 }
 
 function updateClock() {
     const now = new Date();
-    
-    // Time
-    const timeOptions = { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit',
-        hour12: true 
-    };
-    const timeString = now.toLocaleTimeString('en-US', timeOptions);
-    
-    // Date
-    const dateOptions = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    };
-    const dateString = now.toLocaleDateString('en-US', dateOptions);
-    
-    // Update DOM
+    const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    const dateString = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
     const timeDisplay = document.getElementById('currentTime');
     const dateDisplay = document.getElementById('currentDate');
-    
+
     if (timeDisplay) timeDisplay.textContent = timeString;
     if (dateDisplay) dateDisplay.textContent = dateString;
 }
 
 // ========== NAVIGATION ==========
 function initializeNavigation() {
-    // Menu toggle for mobile
     if (menuToggle) {
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
-        });
+        menuToggle.addEventListener('click', () => sidebar.classList.toggle('active'));
     }
-    
-    // Menu item clicks
+
     menuItems.forEach(item => {
         item.addEventListener('click', () => {
             const section = item.getAttribute('data-section');
             switchSection(section);
-            
-            // Update active state
+
             menuItems.forEach(mi => mi.classList.remove('active'));
             item.classList.add('active');
-            
-            // Close sidebar on mobile
-            if (window.innerWidth <= 992) {
-                sidebar.classList.remove('active');
-            }
+
+            if (window.innerWidth <= 992) sidebar.classList.remove('active');
         });
     });
 }
 
 function switchSection(sectionName) {
     currentSection = sectionName;
-    
-    // Hide all sections
-    contentSections.forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    // Show selected section
+    contentSections.forEach(section => section.classList.remove('active'));
+
     const targetSection = document.getElementById(`${sectionName}-section`);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
-    
-    // Update page title
+    if (targetSection) targetSection.classList.add('active');
+
     updatePageTitle(sectionName);
 }
 
@@ -118,10 +153,7 @@ function updatePageTitle(section) {
         'inactive': 'Inactive Students',
         'account': 'Account Settings'
     };
-    
-    if (pageTitle) {
-        pageTitle.textContent = titles[section] || 'Faculty Portal';
-    }
+    if (pageTitle) pageTitle.textContent = titles[section] || 'Faculty Portal';
 }
 
 // ========== LOGOUT ==========
@@ -129,106 +161,56 @@ function initializeLogout() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             if (confirm('Are you sure you want to logout?')) {
-                // Clear any stored data
-                localStorage.clear();
-                sessionStorage.clear();
-                
-                // Redirect to login page
+                alert('Logged out successfully!');
                 window.location.href = './component/Login.html';
             }
         });
     }
 }
 
-// ========== STUDENTS DATA ==========
+// ========== STUDENTS DATA & ANALYTICS ==========
 async function fetchStudents() {
     try {
         const response = await fetch('http://localhost:3000/students');
         const result = await response.json();
-        
+
         if (result.success) {
             studentsData = result.data;
             renderStudentsTable();
-            updateAnalytics();
+            updateAnalytics(); // Update counts after fetching data
         } else {
             console.error('Failed to fetch students:', result.message);
-            // Show sample data if API fails
             loadSampleData();
         }
     } catch (error) {
         console.error('Error fetching students:', error);
-        // Show sample data if API fails
         loadSampleData();
     }
 }
 
+function updateAnalytics() {
+    // Calculate total students from the fetched data
+    const totalStudentsCount = studentsData.length;
+
+    // Update the DOM element
+    const totalStudentsEl = document.getElementById('totalStudents');
+    if (totalStudentsEl) {
+        totalStudentsEl.textContent = totalStudentsCount;
+    }
+
+    // Static placeholders for other stats
+    const teachersCard = document.getElementById('totalTeachers');
+    const coursesCard = document.getElementById('totalCoursses');
+
+    if (teachersCard) teachersCard.textContent = '2';
+    if (coursesCard) coursesCard.textContent = '1';
+}
+
 function loadSampleData() {
     studentsData = [
-        {
-            SID: 1,
-            sname: 'John Doe',
-            semail: 'john@example.com',
-            gender: 'Male',
-            dob: '2000-05-15',
-            sphone: '1234567890',
-            Cname: 'Computer Science'
-        },
-        {
-            SID: 2,
-            sname: 'Jane Smith',
-            semail: 'jane@example.com',
-            gender: 'Female',
-            dob: '2001-08-22',
-            sphone: '0987654321',
-            Cname: 'Mathematics'
-        },
-        {
-            SID: 3,
-            sname: 'Alice Johnson',
-            semail: 'alice@example.com',
-            gender: 'Female',
-            dob: '2000-12-10',
-            sphone: '5551234567',
-            Cname: 'Physics'
-        },
-        {
-            SID: 4,
-            sname: 'Bob Williams',
-            semail: 'bob@example.com',
-            gender: 'Male',
-            dob: '1999-03-18',
-            sphone: '5559876543',
-            Cname: 'Chemistry'
-        },
-        {
-            SID: 5,
-            sname: 'Emma Brown',
-            semail: 'emma@example.com',
-            gender: 'Female',
-            dob: '2001-07-25',
-            sphone: '5555555555',
-            Cname: 'Biology'
-        },
-        {
-            SID: 6,
-            sname: 'Michael Davis',
-            semail: 'michael@example.com',
-            gender: 'Male',
-            dob: '2000-11-30',
-            sphone: '5554443333',
-            Cname: 'English'
-        },
-        {
-            SID: 7,
-            sname: 'Sarah Wilson',
-            semail: 'sarah@example.com',
-            gender: 'Female',
-            dob: '2001-02-14',
-            sphone: '5556667777',
-            Cname: 'History'
-        }
+        { SID: 1, sname: 'John Doe', semail: 'john@example.com', gender: 'Male', dob: '2000-05-15', sphone: '1234567890', Cname: 'Computer Science' },
+        // ... (keep sample data concise or expanded as needed)
     ];
-    
     renderStudentsTable();
     updateAnalytics();
 }
@@ -236,24 +218,18 @@ function loadSampleData() {
 function renderStudentsTable() {
     const tbody = document.getElementById('studentsTableBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = '';
-    
+
     if (studentsData.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="9" class="text-center">No students found</td>
-            </tr>
-        `;
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center">No students found</td></tr>`;
         return;
     }
-    
+
     studentsData.forEach(student => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>
-                <input type="checkbox" class="student-checkbox" data-id="${student.SID}">
-            </td>
+            <td><input type="checkbox" class="student-checkbox" data-id="${student.SID}"></td>
             <td>${student.SID}</td>
             <td>${student.sname}</td>
             <td>${student.semail}</td>
@@ -262,76 +238,39 @@ function renderStudentsTable() {
             <td>${student.sphone || 'N/A'}</td>
             <td>${student.Cname || 'N/A'}</td>
             <td>
-                <button class="btn-icon" onclick="editStudent(${student.SID})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon delete" onclick="deleteStudent(${student.SID})">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <button class="btn-icon" onclick="editStudent(${student.SID})"><i class="fas fa-edit"></i></button>
+                <button class="btn-icon delete" onclick="deleteStudent(${student.SID})"><i class="fas fa-trash"></i></button>
             </td>
         `;
         tbody.appendChild(row);
     });
 }
 
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-    });
-}
-
-// ========== ANALYTICS ==========
-function updateAnalytics() {
-    // Count students
-    const totalStudents = studentsData.length;
-    
-    // Update dashboard cards
-    const studentsCard = document.getElementById('totalStudents');
-    const teachersCard = document.getElementById('totalTeachers');
-    const CoursesCard = document.getElementById('totalCoursses');
-    const totalCard = document.getElementById('totalUsers');
-    
-    if (studentsCard) studentsCard.textContent = totalStudents;
-    if (teachersCard) teachersCard.textContent = '2'; // Static for now
-    if (CoursesCard) CoursesCard.textContent = '1'; // Static for now
-    if (totalCard) totalCard.textContent = totalStudents + 3; // Total
-}
-
-// ========== STUDENT CRUD OPERATIONS ==========
+// ========== CRUD OPERATIONS ==========
 function editStudent(id) {
     const student = studentsData.find(s => s.SID === id);
-    if (!student) {
-        alert('Student not found!');
-        return;
-    }
-    
-    // For now, just show an alert
-    alert(`Edit Student: ${student.sname}\n\nThis feature will open an edit modal.`);
-    
-    // TODO: Implement edit modal
+    if (!student) return alert('Student not found!');
+    alert(`Edit Student: ${student.sname}\n\nFeature coming soon.`);
 }
 
 async function deleteStudent(id) {
-    if (!confirm('Are you sure you want to delete this student?')) {
-        return;
-    }
-    
+    if (!confirm('Are you sure you want to delete this student?')) return;
+
     try {
-        const response = await fetch(`http://localhost:3000/students/${id}`, {
-            method: 'DELETE'
-        });
-        
+        const response = await fetch(`http://localhost:3000/students/${id}`, { method: 'DELETE' });
         const result = await response.json();
-        
-        if (result.message === 'Student deleted') {
+
+        if (result.success) { // consistent with backend response
             alert('Student deleted successfully!');
-            fetchStudents(); // Refresh the list
+            fetchStudents();
         } else {
-            alert('Failed to delete student');
+            // Also handle message-based success check if backend is inconsistent
+            if (result.message === 'Student deleted' || result.message === 'Student deleted successfully') {
+                alert('Student deleted successfully!');
+                fetchStudents();
+            } else {
+                alert('Failed to delete student: ' + result.message);
+            }
         }
     } catch (error) {
         console.error('Error deleting student:', error);
@@ -339,111 +278,92 @@ async function deleteStudent(id) {
     }
 }
 
-// Add Student Button
-const addStudentBtn = document.getElementById('addStudentBtn');
-if (addStudentBtn) {
-    addStudentBtn.addEventListener('click', () => {
-        alert('Add Student feature coming soon!\n\nThis will open a modal to add a new student.');
-        // TODO: Implement add student modal
-    });
+// ========== UTILS ==========
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// ========== SELECT ALL CHECKBOX ==========
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// ========== UI INTERACTION (Activities, Announcements, etc.) ==========
+const addStudentBtn = document.getElementById('addStudentBtn');
+if (addStudentBtn) {
+    addStudentBtn.addEventListener('click', () => alert('Add Student feature coming soon!'));
+}
+
 const selectAllCheckbox = document.getElementById('selectAll');
 if (selectAllCheckbox) {
     selectAllCheckbox.addEventListener('change', (e) => {
-        const checkboxes = document.querySelectorAll('.student-checkbox');
-        checkboxes.forEach(cb => {
-            cb.checked = e.target.checked;
-        });
+        document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = e.target.checked);
     });
 }
 
-// ========== ACTIVITIES FUNCTIONALITY ==========
+// Activities
 const activityInput = document.querySelector('.activity-input input');
 const btnAdd = document.querySelector('.btn-add');
 const activitiesList = document.getElementById('activitiesList');
 
-if (btnAdd && activityInput) {
+if (btnAdd && activityInput && activitiesList) {
+    const addActivity = () => {
+        const text = activityInput.value.trim();
+        if (!text) return;
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+        item.innerHTML = `<span>${text}</span>
+            <div class="activity-actions">
+                <button class="btn-check" onclick="this.closest('.activity-item').remove()"><i class="fas fa-check"></i></button>
+                <button class="btn-trash" onclick="this.closest('.activity-item').remove()"><i class="fas fa-trash"></i></button>
+            </div>`;
+        activitiesList.appendChild(item);
+        activityInput.value = '';
+    };
     btnAdd.addEventListener('click', addActivity);
-    activityInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            addActivity();
-        }
-    });
+    activityInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addActivity(); });
 }
 
-function addActivity() {
-    const text = activityInput.value.trim();
-    if (!text) return;
-    
-    const activityItem = document.createElement('div');
-    activityItem.className = 'activity-item';
-    activityItem.innerHTML = `
-        <span>${text}</span>
-        <div class="activity-actions">
-            <button class="btn-check" onclick="this.parentElement.parentElement.remove()">
-                <i class="fas fa-check"></i>
-            </button>
-            <button class="btn-trash" onclick="this.parentElement.parentElement.remove()">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-    
-    activitiesList.appendChild(activityItem);
-    activityInput.value = '';
-}
-
-// ========== ANNOUNCEMENTS ==========
+// Announcements
 const btnPost = document.querySelector('.btn-post');
-if (btnPost) {
+const announcementsList = document.getElementById('announcementsList');
+if (btnPost && announcementsList) {
     btnPost.addEventListener('click', () => {
-        const announcement = prompt('Enter announcement text:');
-        if (!announcement) return;
-        
-        const announcementsList = document.getElementById('announcementsList');
+        const text = prompt('Enter announcement text:');
+        if (!text) return;
         const now = new Date();
-        const dateStr = now.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: '2-digit' 
-        });
-        const timeStr = now.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: true 
-        });
-        
-        const newAnnouncement = document.createElement('div');
-        newAnnouncement.className = 'announcement-item';
-        newAnnouncement.innerHTML = `
+        const div = document.createElement('div');
+        div.className = 'announcement-item';
+        div.innerHTML = `
             <div class="announcement-header">
                 <h4>New Announcement</h4>
-                <button class="btn-delete" onclick="this.parentElement.parentElement.remove()">Delete</button>
+                <button class="btn-delete" onclick="this.closest('.announcement-item').remove()">Delete</button>
             </div>
-            <p class="announcement-text">${announcement}</p>
-            <p class="announcement-meta">Mark Calendario on ${dateStr} at ${timeStr}</p>
+            <p class="announcement-text">${text}</p>
+            <p class="announcement-meta">Posted on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}</p>
         `;
-        
-        announcementsList.insertBefore(newAnnouncement, announcementsList.firstChild);
+        announcementsList.insertBefore(div, announcementsList.firstChild);
     });
 }
 
-// ========== RESPONSIVE SIDEBAR ==========
+// Responsive Sidebar
 window.addEventListener('resize', () => {
-    if (window.innerWidth > 992) {
-        sidebar.classList.remove('active');
-    }
+    if (window.innerWidth > 992) sidebar.classList.remove('active');
 });
 
-// ========== SMOOTH ANIMATIONS ==========
-// Add entrance animations to cards
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
+// Greeting
+function updateGreeting() {
+    const hour = new Date().getHours();
+    let greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const greetingCard = document.querySelector('.greeting-card h3');
+    if (greetingCard) {
+        const name = document.getElementById('sidebarUserName')?.textContent.split(' ')[0] || 'User';
+        greetingCard.textContent = `${greeting}, ${name}!`;
+    }
+}
 
+// Animations
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -451,9 +371,8 @@ const observer = new IntersectionObserver((entries) => {
             entry.target.style.transform = 'translateY(0)';
         }
     });
-}, observerOptions);
+}, { threshold: 0.1 });
 
-// Observe all cards
 document.querySelectorAll('.analytics-card, .dashboard-card, .info-card').forEach(card => {
     card.style.opacity = '0';
     card.style.transform = 'translateY(20px)';
@@ -461,32 +380,8 @@ document.querySelectorAll('.analytics-card, .dashboard-card, .info-card').forEac
     observer.observe(card);
 });
 
-// ========== GREETING BASED ON TIME ==========
-function updateGreeting() {
-    const hour = new Date().getHours();
-    let greeting = 'Good evening';
-    
-    if (hour < 12) {
-        greeting = 'Good morning';
-    } else if (hour < 18) {
-        greeting = 'Good afternoon';
-    }
-    
-    const greetingCard = document.querySelector('.greeting-card h3');
-    if (greetingCard) {
-        const userName = document.getElementById('sidebarUserName')?.textContent.split(' ')[0] || 'User';
-        greetingCard.textContent = `${greeting}, ${userName}!`;
-    }
-}
-
-// Update greeting on load
-updateGreeting();
-
-// ========== CONSOLE LOG ==========
-console.log('%c🎓 Student Management System', 'color: #4f7cff; font-size: 20px; font-weight: bold;');
-console.log('%cDashboard loaded successfully!', 'color: #00c853; font-size: 14px;');
-console.log('%cCurrent Section:', currentSection);
-
-// ========== EXPORT FUNCTIONS FOR HTML ONCLICK ==========
+// Exports
 window.editStudent = editStudent;
 window.deleteStudent = deleteStudent;
+
+console.log('%c🎓 Student Management System Loaded', 'color: #4f7cff; font-weight: bold;');
