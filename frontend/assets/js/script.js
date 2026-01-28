@@ -17,6 +17,12 @@ const contentSections = document.querySelectorAll('.content-section');
 const pageTitle = document.getElementById('pageTitle');
 const logoutBtn = document.getElementById('logoutBtn');
 
+
+// ========== CONSTANTS ==========
+// Determine correct path to login based on current directory depth
+const isInDashboardDir = window.location.pathname.includes('/dashboards/');
+const LOGIN_PATH = isInDashboardDir ? '../../component/Login.html' : './component/Login.html';
+
 // ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', () => {
     checkAuthentication();
@@ -24,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeClock();
     initializeNavigation();
     initializeLogout();
-    fetchStudents(); // This handles updating analytics too
+    // fetchStudents(); // This handles updating analytics too
 
     // Start clock update
     setInterval(updateClock, 1000);
@@ -37,7 +43,7 @@ function checkAuthentication() {
 
     if (!userId) {
         alert('Please login to access the dashboard');
-        window.location.href = './component/Login.html';
+        window.location.href = LOGIN_PATH;
     }
 }
 
@@ -55,7 +61,7 @@ function loadUserData() {
                 } else {
                     console.error('Failed to load user profile');
                     alert('Session expired or invalid user');
-                    window.location.href = './component/Login.html';
+                    window.location.href = LOGIN_PATH;
                 }
             })
             .catch(error => console.error('Error fetching user profile:', error));
@@ -66,17 +72,17 @@ function updateUserDisplay() {
     if (!loggedInUser) return;
 
     // Sidebar user info
-    const sidebarUserName = document.getElementById('sidebarUserName');
+    const sidebarUserEmail = document.getElementById('sidebarUserName');
     const sidebarUserRole = document.getElementById('sidebarUserRole');
 
-    if (sidebarUserName) sidebarUserName.textContent = loggedInUser.name;
+    if (sidebarUserEmail) sidebarUserEmail.textContent = loggedInUser.email;
     if (sidebarUserRole) sidebarUserRole.textContent = capitalize(loggedInUser.role);
 
     // Welcome banner
     const welcomeUserName = document.getElementById('welcomeUserName');
     const welcomeUserRole = document.getElementById('welcomeUserRole');
 
-    if (welcomeUserName) welcomeUserName.textContent = loggedInUser.name;
+    if (welcomeUserName) welcomeUserName.textContent = loggedInUser.email;
     if (welcomeUserRole) welcomeUserRole.textContent = capitalize(loggedInUser.role);
 
     // Account Settings form
@@ -162,89 +168,89 @@ function initializeLogout() {
         logoutBtn.addEventListener('click', () => {
             if (confirm('Are you sure you want to logout?')) {
                 alert('Logged out successfully!');
-                window.location.href = './component/Login.html';
+                window.location.href = LOGIN_PATH;
             }
         });
     }
 }
 
 // ========== STUDENTS DATA & ANALYTICS ==========
-async function fetchStudents() {
-    try {
-        const response = await fetch('http://localhost:3000/students');
-        const result = await response.json();
+// async function fetchStudents() {
+//     try {
+//         const response = await fetch('http://localhost:3000/students');
+//         const result = await response.json();
 
-        if (result.success) {
-            studentsData = result.data;
-            renderStudentsTable();
-            updateAnalytics(); // Update counts after fetching data
-        } else {
-            console.error('Failed to fetch students:', result.message);
-            loadSampleData();
-        }
-    } catch (error) {
-        console.error('Error fetching students:', error);
-        loadSampleData();
-    }
-}
+//         if (result.success) {
+//             studentsData = result.data;
+//             renderStudentsTable();
+//             updateAnalytics(); // Update counts after fetching data
+//         } else {
+//             console.error('Failed to fetch students:', result.message);
+//             loadSampleData();
+//         }
+//     } catch (error) {
+//         console.error('Error fetching students:', error);
+//         loadSampleData();
+//     }
+// }
 
-function updateAnalytics() {
-    // Calculate total students from the fetched data
-    const totalStudentsCount = studentsData.length;
+// function updateAnalytics() {
+//     // Calculate total students from the fetched data
+//     const totalStudentsCount = studentsData.length;
 
-    // Update the DOM element
-    const totalStudentsEl = document.getElementById('totalStudents');
-    if (totalStudentsEl) {
-        totalStudentsEl.textContent = totalStudentsCount;
-    }
+//     // Update the DOM element
+//     const totalStudentsEl = document.getElementById('totalStudents');
+//     if (totalStudentsEl) {
+//         totalStudentsEl.textContent = totalStudentsCount;
+//     }
 
-    // Static placeholders for other stats
-    const teachersCard = document.getElementById('totalTeachers');
-    const coursesCard = document.getElementById('totalCoursses');
+//     // Static placeholders for other stats
+//     const teachersCard = document.getElementById('totalTeachers');
+//     const coursesCard = document.getElementById('totalCoursses');
 
-    if (teachersCard) teachersCard.textContent = '2';
-    if (coursesCard) coursesCard.textContent = '1';
-}
+//     if (teachersCard) teachersCard.textContent = '2';
+//     if (coursesCard) coursesCard.textContent = '1';
+// }
 
-function loadSampleData() {
-    studentsData = [
-        { SID: 1, sname: 'John Doe', semail: 'john@example.com', gender: 'Male', dob: '2000-05-15', sphone: '1234567890', Cname: 'Computer Science' },
-        // ... (keep sample data concise or expanded as needed)
-    ];
-    renderStudentsTable();
-    updateAnalytics();
-}
+// function loadSampleData() {
+//     studentsData = [
+//         { SID: 1, sname: 'John Doe', semail: 'john@example.com', gender: 'Male', dob: '2000-05-15', sphone: '1234567890', Cname: 'Computer Science' },
+//         // ... (keep sample data concise or expanded as needed)
+//     ];
+//     renderStudentsTable();
+//     updateAnalytics();
+// }
 
-function renderStudentsTable() {
-    const tbody = document.getElementById('studentsTableBody');
-    if (!tbody) return;
+// function renderStudentsTable() {
+//     const tbody = document.getElementById('studentsTableBody');
+//     if (!tbody) return;
 
-    tbody.innerHTML = '';
+//     tbody.innerHTML = '';
 
-    if (studentsData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center">No students found</td></tr>`;
-        return;
-    }
+//     if (studentsData.length === 0) {
+//         tbody.innerHTML = `<tr><td colspan="9" class="text-center">No students found</td></tr>`;
+//         return;
+//     }
 
-    studentsData.forEach(student => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><input type="checkbox" class="student-checkbox" data-id="${student.SID}"></td>
-            <td>${student.SID}</td>
-            <td>${student.sname}</td>
-            <td>${student.semail}</td>
-            <td>${student.gender || 'N/A'}</td>
-            <td>${formatDate(student.dob)}</td>
-            <td>${student.sphone || 'N/A'}</td>
-            <td>${student.Cname || 'N/A'}</td>
-            <td>
-                <button class="btn-icon" onclick="editStudent(${student.SID})"><i class="fas fa-edit"></i></button>
-                <button class="btn-icon delete" onclick="deleteStudent(${student.SID})"><i class="fas fa-trash"></i></button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
+//     studentsData.forEach(student => {
+//         const row = document.createElement('tr');
+//         row.innerHTML = `
+//             <td><input type="checkbox" class="student-checkbox" data-id="${student.SID}"></td>
+//             <td>${student.SID}</td>
+//             <td>${student.sname}</td>
+//             <td>${student.semail}</td>
+//             <td>${student.gender || 'N/A'}</td>
+//             <td>${formatDate(student.dob)}</td>
+//             <td>${student.sphone || 'N/A'}</td>
+//             <td>${student.Cname || 'N/A'}</td>
+//             <td>
+//                 <button class="btn-icon" onclick="editStudent(${student.SID})"><i class="fas fa-edit"></i></button>
+//                 <button class="btn-icon delete" onclick="deleteStudent(${student.SID})"><i class="fas fa-trash"></i></button>
+//             </td>
+//         `;
+//         tbody.appendChild(row);
+//     });
+// }
 
 // ========== CRUD OPERATIONS ==========
 function editStudent(id) {
@@ -358,8 +364,8 @@ function updateGreeting() {
     let greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     const greetingCard = document.querySelector('.greeting-card h3');
     if (greetingCard) {
-        const name = document.getElementById('sidebarUserName')?.textContent.split(' ')[0] || 'User';
-        greetingCard.textContent = `${greeting}, ${name}!`;
+        const email = document.getElementById('sidebarUserName')?.textContent.split(' ')[0] || 'User';
+        greetingCard.textContent = `${greeting}, ${email}!`;
     }
 }
 

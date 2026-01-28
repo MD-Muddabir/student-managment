@@ -79,21 +79,22 @@ function signUp(e) {
 
 
     // Inputs
-    const userIn = document.getElementById("uname");
+    // const userIn = document.getElementById("uname");
     const emailIn = document.getElementById("uemail");
     const passIn = document.getElementById("upassword");
     // const dobIn = document.getElementById("udob");
-    const phoneIn = document.getElementById("uphone");
+    // const phoneIn = document.getElementById("uphone");
     const role = "student";
+    const status = "active";
     // const roleIn = document.getElementById("signupRole");
     // const genderError = document.getElementById("genderError");
 
     // Values
-    const name = userIn.value.trim();
+    // const name = userIn.value.trim();
     const email = emailIn.value.trim();
     const password = passIn.value.trim();
     // const dob = dobIn.value.trim();
-    const phone = phoneIn.value.trim();
+    // const phone = phoneIn.value.trim();
     // const role = roleIn.value.trim();
     // const gender =
     //     document.querySelector("input[name='gender']:checked")?.value || "";
@@ -101,25 +102,29 @@ function signUp(e) {
     let valid = true;
 
     // Reset errors
-    setInputError(userIn, false);
+    // setInputError(userIn, false);
     setInputError(emailIn, false);
     setInputError(passIn, false);
     // setInputError(dobIn, false);
     // setInputError(roleIn, false);
-    setInputError(phoneIn, false);
+    // setInputError(phoneIn, false);
     // genderError.style.display = "none";
 
 
 
 
     // Validation
-    if (!name) { setInputError(userIn, true, "Username required"); valid = false; }
+    // if (!name) { setInputError(userIn, true, "Username required"); valid = false; }
     if (!email) { setInputError(emailIn, true, "Email required"); valid = false; }
     if (!password) { setInputError(passIn, true, "Password required"); valid = false; }
     // if (!dob) { setInputError(dobIn, true, "Birthday required"); valid = false; }
-    if (!phone) { setInputError(phoneIn, true, "Phone required"); valid = false; }
+    // if (!phone) { setInputError(phoneIn, true, "Phone required"); valid = false; }
     if (!role || role === "null") {
-        setInputError(roleIn, true, "Role required");
+        setInputError(true, "Role required");
+        valid = false;
+    }
+    if (!status || status === "null") {
+        setInputError(true, "Status required");
         valid = false;
     }
     // if (!gender) {
@@ -131,14 +136,12 @@ function signUp(e) {
 
     // Data for backend
     const data = {
-        name,
         email,
         password,
         // gender,
         // dob,
-        phone,
-        role
-        // role: "student"
+        role,
+        status
     };
 
 
@@ -148,6 +151,7 @@ function signUp(e) {
         headers: {
             "content-type": "application/json"
         },
+        // credentials: "include",
         body: JSON.stringify(data)
     })
         .then(res => res.json())
@@ -179,7 +183,7 @@ document.getElementById("signInSubmit").addEventListener("click", loginUser);
 function loginUser(e) {
     e.preventDefault();
 
-    const userIn = document.getElementById("si_username");
+    const userIn = document.getElementById("si_email");
     const passIn = document.getElementById("si_password");
     const roleIn = document.getElementById("signinRole");
 
@@ -227,11 +231,24 @@ function loginUser(e) {
                 // Remove localStorage usage
                 // localStorage.setItem('loggedInUser', JSON.stringify(result.user));
 
-                alert("Login Successful! Welcome " + result.user.name);
+                // alert("Login Successful! Welcome " + result.user.name);
+                localStorage.setItem("token", result.token);
                 console.log("User:", result.user);
 
-                // Redirect to dashboard with ID in URL
-                window.location.href = "../index.html?id=" + result.user.id;
+                // Redirect to dashboard with ID in URL based on role
+                let targetDashboard = '';
+                if (result.user.role === 'admin') {
+                    // Assuming standard index.html or specific admin dashboard
+                    targetDashboard = '../dashboards/admin/admin-dashboard.html';
+                } else if (result.user.role === 'faculty') {
+                    targetDashboard = '../dashboards/faculty/faculty-dashboard.html';
+                } else if (result.user.role === 'student') {
+                    targetDashboard = '../dashboards/student/student-dashboard.html';
+                } else {
+                    targetDashboard = '../index.html'; // Fallback
+                }
+
+                window.location.href = `${targetDashboard}?id=${result.user.id}`;
             } else {
                 alert("Login failed: " + result.message);
             }

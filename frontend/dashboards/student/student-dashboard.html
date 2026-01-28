@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/studentDashboard.css">
+
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="user-info">
+                    <h4 id="sidebarUserName">Student Name</h4>
+                    <p id="sidebarUserRole">Student</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <h5 class="menu-title">Student Menu</h5>
+                <ul class="menu-list">
+                    <li class="menu-item active" data-section="dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </li>
+                    <li class="menu-item" data-section="student-details">
+                        <i class="fas fa-id-card"></i>
+                        <span>Student Details</span>
+                    </li>
+                    <li class="menu-item" data-section="courses">
+                        <i class="fas fa-book-open"></i>
+                        <span>All Courses</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="menu-section">
+                <h5 class="menu-title">Personal Settings</h5>
+                <ul class="menu-list">
+                    <li class="menu-item" data-section="account">
+                        <i class="fas fa-cog"></i>
+                        <span>Account Settings</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="navbar-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 class="page-title" id="pageTitle">Student Portal</h2>
+            </div>
+            <div class="navbar-right">
+                <button class="nav-icon-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">1</span>
+                </button>
+                <button class="nav-icon-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <section class="content-section active" id="dashboard-section">
+            <div class="welcome-banner">
+                <div class="welcome-text">
+                    <h1>Hello, <span id="welcomeUserName">Student</span></h1>
+                    <p>Welcome to your learning portal.</p>
+                </div>
+                <div class="welcome-illustration">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+            </div>
+
+            <!-- Enrolled Courses Section (Dynamics) -->
+            <div class="analytics-section" id="studentAnalytics" style="display: none;">
+                <h3 class="section-title">My Enrolled Courses</h3>
+
+                <!-- Container for dynamic course cards -->
+                <div class="cards-grid" id="enrolledCoursesContainer">
+                    <!-- Cards will be injected here by studentDashboard.js -->
+                </div>
+            </div>
+
+            <!-- New Grid Layout -->
+            <div class="dashboard-grid">
+                <!-- Chat / FAQ Section -->
+                <div class="dashboard-card" style="grid-column: span 2;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-question-circle"></i> Help & Support</h3>
+                    </div>
+                    <div class="chat-faq-container">
+                        <!-- FAQ Items -->
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                How do I enroll in a course?
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>Navigate to the "All Courses" section and contact administration for enrollment
+                                    details.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                How can I update my profile?
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>Go to "Student Details" to update your personal information.</p>
+                            </div>
+                        </div>
+                        <div class="faq-item">
+                            <button class="faq-question">
+                                When do classes start?
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p>Classes usually start at the beginning of the semester. Check the announcements for
+                                    specific dates.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activities & Clock -->
+                <div class="dashboard-card activities-card">
+                    <div class="clock-widget">
+                        <div class="time-display" id="currentTime">--:--:--</div>
+                        <div class="date-display" id="currentDate">--</div>
+                    </div>
+                    <div class="greeting-card">
+                        <h3>Keep Learning!</h3>
+                        <p>Education is the passport to the future.</p>
+                    </div>
+                    <div class="activities-section">
+                        <h4>Your Tasks</h4>
+                        <div class="activity-input">
+                            <input type="text" placeholder="Add a personal task...">
+                            <button class="btn-add">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div class="activity-list" id="activitiesList">
+                            <!-- Activity items will go here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Student Details Section (Previously Students) -->
+        <section class="content-section" id="student-details-section">
+            <div class="section-header">
+                <h2>My Student Details</h2>
+            </div>
+
+            <form class="student-details-form" id="studentDetailsForm">
+
+                <div class="form-grid-2">
+
+                    <div class="form-group">
+                        <label for="sname">Full Name</label>
+                        <input type="text" id="dname" name="sname" required placeholder="John Doe">
+                        <small class="error-text">Enter a valid name</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="semail">Email Address</label>
+                        <input type="email" id="demail" name="semail" readonly placeholder="john@example.com">
+                        <small class="error-text">Enter a valid email address</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="dgender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <small class="error-text">Select a gender</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" id="dob" name="dob" required>
+                        <small class="error-text">Enter a valid date</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sphone">Phone Number</label>
+                        <input type="tel" id="dphone" name="sphone" required placeholder="1234567890"
+                            pattern="[0-9]{10}" maxlength="10">
+                        <small class="error-text">Enter a valid phone number</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="saddress">Address</label>
+                        <input type="text" id="address" name="saddress" required placeholder="1234567890">
+                        <small class="error-text">Enter a valid address</small>
+                    </div>
+                    <!-- <div class="form-group">
+                        <label for="CID">Primary Course</label>
+                        <select id="dCID" name="CID">
+                            <option value="">Select Courses</option>
+                            <option value="1">WEB DEVELOPMENT</option>
+                            <option value="2">Internet of Things (IoT)</option>
+                            <option value="3">Cloud Computing</option>
+                            <option value="4">Artificial Intelligence</option>
+                            <option value="5">Core Java</option>
+                            <option value="6">Advance Java</option>
+                            <option value="7">Data Science</option>
+                            <option value="8">Cyber Security</option>
+                            <option value="9">SQL DATABASE</option>
+                        </select>
+                        <small class="error-text">Select a course</small>
+                    </div> -->
+
+                </div>
+                <div class="form-actions" style="margin-top: 2rem; text-align: right;">
+                    <button type="submit" class="btn-primary">Submit Details</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- All Courses Section (Previously Manage Subjects) -->
+        <section class="content-section" id="courses-section">
+            <div class="section-header">
+                <h2>Available Courses</h2>
+            </div>
+            <div class="cards-grid">
+                <!-- Read Only Course Cards -->
+                <div class="info-card">
+                    <h3>WEB DEVELOPMENT</h3>
+                    <p>Code: WEB101</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>SQL DATABASE</h3>
+                    <p>Code: SQL101</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>REACT FRAMEWORK</h3>
+                    <p>Code: RF101</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>CORE JAVA</h3>
+                    <p>Code: JP101</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>ADVANCED JAVA</h3>
+                    <p>Code: JP102</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Account Settings -->
+        <section class="content-section" id="account-section">
+            <div class="section-header">
+                <h2>Account Settings</h2>
+            </div>
+            <div class="form-container">
+                <form class="settings-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="settingsName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="settingsEmail" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <input type="text" id="settingsRole" readonly>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script src="../../assets/js/script.js"></script>
+    <script src="../../assets/js/studentDashboard.js"></script>
+
+</body>
+
+</html>

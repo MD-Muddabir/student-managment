@@ -1,6 +1,22 @@
 const db = require("../config/db");
 
 
+// get stduent name
+exports.getStudentName = (id, callback) => {
+    const sql = `SELECT uemail FROM users WHERE UID = ?`;
+    db.query(sql, [id], callback);
+};
+
+// post student details
+exports.addStudentDetails = (data, callback) => {
+    const sql = `
+        INSERT INTO students 
+        (UID, sname, gender, dob, phone, address, profile_completed) 
+        VALUES (?, ?, ?, ?, ?, ?, ?);
+    `;
+    db.query(sql, data, callback);
+};
+
 // Get all students
 exports.getAllStudents = (callback) => {
     const sql = `
@@ -55,9 +71,46 @@ exports.deleteStudent = (id, callback) => {
 };
 
 // Count Student
-// exports.countStudent = (callback) => {
-//     const sql = `
-//     SELECT COUNT(*)
-//     FROM students`;
-//     db.query(sql, callback);
-// };
+// Get enrolled courses for a specific student
+// Get enrolled courses for a specific student
+exports.getEnrolledCourses = (studentId, callback) => {
+    const sql = `
+        SELECT c.CID, c.cname, c.code, c.duration
+        FROM enrolled_courses ec
+        JOIN courses c ON ec.CID = c.CID
+        WHERE ec.SID = ?
+    `;
+    db.query(sql, [SID], callback);
+};
+
+// Enroll student in a course
+exports.enrollStudent = (studentId, courseId, callback) => {
+    const sql = `INSERT INTO enrolled_courses (SID, CID) VALUES (?, ?)`;
+    db.query(sql, [studentId, courseId], callback);
+};
+
+
+// Find user by ID for dashboard profile
+exports.findUserById = (id, callback) => {
+    const sql = `
+    SELECT u.UID, u.uname, u.uemail, u.role, s.sphone
+    FROM users u
+    LEFT JOIN students s ON u.uemail = s.semail
+    WHERE u.UID = ?`;
+    db.query(sql, [id], callback);
+};
+
+
+// Create student details
+exports.createStudentDetails = (data, callback) => {
+    const sql = `
+        INSERT INTO students (UID, gender, dob, sphone)
+        VALUES (?, ?, ?, ?)
+    `;
+    db.query(sql, data, callback);
+};
+
+exports.findStudentByUID = (UID, callback) => {
+    const sql = `SELECT SID FROM students WHERE UID = ?`;
+    db.query(sql, [UID], callback);
+};

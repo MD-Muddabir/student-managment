@@ -10,7 +10,7 @@ const db = require("../config/db");
 // Insert user
 exports.createUser = (data, callback) => {
     const sql = `
-    INSERT INTO users (uname, uemail, upassword, role)
+    INSERT INTO users (uemail, upassword, role, status)
     VALUES (?, ?, ?, ?)`;
     db.query(sql, data, callback);
 };
@@ -18,29 +18,41 @@ exports.createUser = (data, callback) => {
 // Find user by email with student details
 exports.findUserByEmail = (email, callback) => {
     const sql = `
-    SELECT u.UID, u.uname, u.uemail, u.upassword, u.role, s.sphone
-    FROM users u
-    LEFT JOIN students s ON u.uemail = s.semail
-    WHERE u.uemail = ?`;
+SELECT u.UID, u.uemail, u.upassword, u.role, u.status
+FROM users u
+WHERE u.uemail = ?`;
     db.query(sql, [email], callback);
 };
 
 // Find user by ID for dashboard profile
 exports.findUserById = (id, callback) => {
     const sql = `
-    SELECT u.UID, u.uname, u.uemail, u.role, s.sphone
-    FROM users u
-    LEFT JOIN students s ON u.uemail = s.semail
-    WHERE u.UID = ?`;
+    SELECT *
+    FROM users
+    WHERE UID = ?`;
     db.query(sql, [id], callback);
 };
 
 // Insert student
-exports.createStudent = (data, callback) => {
+// exports.createStudent = (data, callback) => {
+//     const sql = `
+//     INSERT INTO students (sname, semail, sphone)
+//     VALUES (?, ?, ?)`;
+//     db.query(sql, data, callback);
+// };
+
+// Insert student details
+exports.createStudentDetails = (data, callback) => {
     const sql = `
-    INSERT INTO students (sname, semail, sphone)
-    VALUES (?, ?, ?)`;
+        INSERT INTO students (sname, semail, gender, dob, sphone)
+        VALUES (?, ?, ?, ?, ?)
+        `;
     db.query(sql, data, callback);
 };
 
+// Course Count
+exports.getCourseCount = (callback) => {
+    const sql = `SELECT COUNT(*) AS totalCourses FROM courses`;
+    db.query(sql, callback);
+}
 

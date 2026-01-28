@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Portal</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-info">
+                    <h4 id="sidebarUserName">User Name</h4>
+                    <p id="sidebarUserRole">Faculty</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <h5 class="menu-title">Faculty Menu</h5>
+                <ul class="menu-list">
+                    <li class="menu-item active" data-section="dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </li>
+                    <li class="menu-item" data-section="students">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>Manage Students</span>
+                    </li>
+                    <li class="menu-item" data-section="sections">
+                        <i class="fas fa-th-large"></i>
+                        <span>Manage Sections</span>
+                    </li>
+                    <li class="menu-item" data-section="courses">
+                        <i class="fas fa-book-open"></i>
+                        <span>All Courses</span>
+                    </li>
+                    <!-- RESTRICTED ITEMS REMOVED: Subjects, Strands, Teachers -->
+                </ul>
+            </div>
+
+            <div class="menu-section">
+                <h5 class="menu-title">Personal Settings</h5>
+                <ul class="menu-list">
+                    <li class="menu-item" data-section="account">
+                        <i class="fas fa-cog"></i>
+                        <span>Account Settings</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="navbar-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 class="page-title" id="pageTitle">Faculty Portal</h2>
+            </div>
+            <div class="navbar-right">
+                <button class="nav-icon-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </button>
+                <button class="nav-icon-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <section class="content-section active" id="dashboard-section">
+            <div class="welcome-banner">
+                <div class="welcome-text">
+                    <h1>Hello, <span id="welcomeUserName">Faculty</span></h1>
+                    <p>Welcome! You are logged in as a <span id="welcomeUserRole">Faculty</span>.</p>
+                </div>
+                <div class="welcome-illustration">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+            </div>
+
+            <div class="analytics-section">
+                <h3 class="section-title">Analytics Overview</h3>
+                <div class="analytics-grid">
+                    <div class="analytics-card card-blue">
+                        <div class="card-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="card-content">
+                            <h2 class="card-number" id="totalStudents">7</h2>
+                            <p class="card-label">STUDENTS</p>
+                        </div>
+                    </div>
+                    <!-- REMOVED TEACHERS/COURSES ANALYTICS FOR FACULTY IF NOT NEEDED, OR KEEP READ-ONLY -->
+                    <!-- Keeping placeholders as per typical dashboard design -->
+                    <div class="analytics-card card-orange">
+                        <div class="card-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div class="card-content">
+                            <h2 class="card-number" id="totalTeachers">--</h2>
+                            <p class="card-label">TEACHERS</p>
+                        </div>
+                    </div>
+                    <div class="analytics-card card-pink">
+                        <div class="card-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="card-content">
+                            <h2 class="card-number" id="totalCoursses">1</h2>
+                            <p class="card-label">COURSES</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom Grid -->
+            <div class="dashboard-grid">
+                <!-- Announcements -->
+                <div class="dashboard-card announcements-card">
+                    <div class="card-header">
+                        <h3>Announcements</h3>
+                        <button class="btn-post">
+                            <i class="fas fa-plus-circle"></i>
+                            Post new announcement
+                        </button>
+                    </div>
+                    <div class="announcements-list" id="announcementsList">
+                        <div class="announcement-item">
+                            <div class="announcement-header">
+                                <h4>Meeting</h4>
+                                <button class="btn-delete">Delete</button>
+                            </div>
+                            <p class="announcement-text">We will be having an emergency meeting today at 3:00 PM.</p>
+                            <p class="announcement-meta">Mark Calendario on April 05, 2023 at 02:21 PM</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activities & Clock -->
+                <div class="dashboard-card activities-card">
+                    <div class="clock-widget">
+                        <div class="time-display" id="currentTime">--:--:--</div>
+                        <div class="date-display" id="currentDate">--</div>
+                    </div>
+                    <div class="greeting-card">
+                        <h3>Good afternoon!</h3>
+                        <p>Failures are the best teacher.</p>
+                    </div>
+                    <div class="activities-section">
+                        <h4>Your activities</h4>
+                        <div class="activity-input">
+                            <input type="text" placeholder="Todo content">
+                            <button class="btn-add">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="activity-list" id="activitiesList">
+                            <!-- Activity Item -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Students Section -->
+        <section class="content-section" id="students-section">
+            <div class="section-header">
+                <h2>Manage Students</h2>
+                <button class="btn-primary" id="addStudentBtn">
+                    <i class="fas fa-plus-circle"></i>
+                    Add New Student
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th id="studentId">ID</th>
+                            <th id="studentName">Name</th>
+                            <th id="studentEmail">Email</th>
+                            <th id="studentGender">Gender</th>
+                            <th id="studentDOB">DOB</th>
+                            <th id="studentPhone">Phone</th>
+                            <th id="studentCourse">Course</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <!-- Data will be populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sections Management -->
+        <section class="content-section" id="sections-section">
+            <div class="section-header">
+                <h2>Manage Sections</h2>
+                <button class="btn-primary">
+                    <i class="fas fa-plus-circle"></i>
+                    Add New Section
+                </button>
+            </div>
+            <div class="cards-grid">
+                <div class="info-card">
+                    <h3>Section A</h3>
+                    <p>Students: 25</p>
+                    <button class="btn-secondary">View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>Section B</h3>
+                    <p>Students: 30</p>
+                    <button class="btn-secondary">View Details</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- All Courses Section (Previously Manage Subjects) -->
+        <section class="content-section" id="courses-section">
+            <div class="section-header">
+                <h2>Available Courses</h2>
+            </div>
+            <div class="cards-grid">
+                <!-- Read Only Course Cards -->
+                <div class="info-card">
+                    <h3>WEB DEVELOPMENT</h3>
+                    <p>Code: WEB101</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>SQL DATABASE</h3>
+                    <p>Code: SQL101</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>REACT FRAMEWORK</h3>
+                    <p>Code: RF101</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>CORE JAVA</h3>
+                    <p>Code: JP101</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+                <div class="info-card">
+                    <h3>ADVANCED JAVA</h3>
+                    <p>Code: JP102</p>
+                    <button class="btn-secondary" disabled>View Details</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Account Settings -->
+        <section class="content-section" id="account-section">
+            <div class="section-header">
+                <h2>Account Settings</h2>
+            </div>
+            <div class="form-container">
+                <form class="settings-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="settingsName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="settingsEmail" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="settingsPhone" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <input type="text" id="settingsRole" readonly>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script src="../../assets/js/script.js"></script>
+    <script src="../../assets/js/facultyDashboard.js"></script>
+</body>
+
+</html>

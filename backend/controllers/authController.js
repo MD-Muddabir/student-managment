@@ -8,13 +8,26 @@
 // ❌ No SQL here
 
 const userModel = require("../models/userModel");
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../config/jwt");
+
+
+
+// ================= GENERATE TOKEN =================
+// const token = jwt.sign(
+//     { UID: user.UID },
+//     secretKey,
+//     { expiresIn: "2h" }
+// );
+
+
 
 // ================= SIGNUP =================
 exports.signup = (req, res) => {
-    const { name, email, password, role, phone } = req.body;
+    const { email, password, role, status } = req.body;
 
     userModel.createUser(
-        [name, email, password, role],
+        [email, password, role, status],
         (err, result) => {
             if (err) {
                 if (err.code === "ER_DUP_ENTRY") {
@@ -31,30 +44,30 @@ exports.signup = (req, res) => {
 
             const uId = result.insertId;
 
-            userModel.createStudent(
-                [name, email, phone],
-                (err) => {
-                    if (err) {
-                        return res.status(500).json({
-                            success: false,
-                            message: "Student insert failed"
-                        });
-                    }
+            // userModel.createStudent(
+            //     [email, phone],
+            //     (err) => {
+            //         if (err) {
+            //             return res.status(500).json({
+            //                 success: false,
+            //                 message: "Student insert failed"
+            //             });
+            //         }
 
-                    res.json({
-                        success: true,
-                        message: "Signup successful",
-                        id: uId
-                    });
-                }
-            );
+            res.json({
+                success: true,
+                message: "Signup successful",
+                id: uId
+            });
         }
     );
-};
+}
+//     );
+// };
 
 // ================= LOGIN =================
 exports.login = (req, res) => {
-    const { email, password, role } = req.body;
+    const { email, password, role, status } = req.body;
 
     userModel.findUserByEmail(email, (err, results) => {
         if (err) {
@@ -73,10 +86,17 @@ exports.login = (req, res) => {
 
         const user = results[0];
 
+        // ✅ CREATE TOKEN
+        const token = jwt.sign(
+            { UID: user.UID },
+            JWT_SECRET,
+            { expiresIn: "2h" }
+        );
+
         if (user.upassword !== password) {
             return res.json({
                 success: false,
-                message: "Invalid email or password"
+                message: "Invalid password"
             });
         }
         if (user.role !== role) {
@@ -86,15 +106,27 @@ exports.login = (req, res) => {
             });
         }
 
+        if (user.status == 'blocked') {
+            return res.json({
+                success: false,
+                message: "User is blocked ... !"
+            });
+        }
+        if (user.status == 'inactive') {
+            return res.json({
+                success: false,
+                message: "User is inactive ... !"
+            });
+        }
         res.json({
             success: true,
             message: "Login successful",
+            token,
             user: {
                 id: user.UID,
-                name: user.uname,
                 email: user.uemail,
                 role: user.role,
-                phone: user.sphone || 'N/A'
+                status: user.status
             }
         });
     });
@@ -125,10 +157,9 @@ exports.getProfile = (req, res) => {
             success: true,
             user: {
                 id: user.UID,
-                name: user.uname,
                 email: user.uemail,
                 role: user.role,
-                phone: user.sphone || 'N/A'
+                status: user.status
             }
         });
     });

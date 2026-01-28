@@ -1,0 +1,84 @@
+ /* Specific Styles for Student Dashboard */
+ .chat-faq-container {
+     max-height: 400px;
+     overflow-y: auto;
+     padding: 1rem;
+     background: #f8f9fa;
+     border-radius: 10px;
+ }
+
+ .chat-message {
+     margin-bottom: 1rem;
+     padding: 10px 15px;
+     border-radius: 10px;
+     max-width: 80%;
+ }
+
+ .chat-message.admin {
+     background: #e3f2fd;
+     margin-right: auto;
+     border-bottom-left-radius: 0;
+ }
+
+ .chat-message.user {
+     background: #4f7cff;
+     color: white;
+     margin-left: auto;
+     border-bottom-right-radius: 0;
+     text-align: right;
+ }
+
+ .faq-item {
+     background: white;
+     border: 1px solid #eee;
+     border-radius: 8px;
+     margin-bottom: 0.5rem;
+     overflow: hidden;
+ }
+
+ .faq-question {
+     padding: 1rem;
+     width: 100%;
+     text-align: left;
+     border: none;
+     background: none;
+     font-weight: 600;
+     cursor: pointer;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+ }
+
+ .faq-answer {
+     padding: 0 1rem 1rem 1rem;
+     color: #666;
+     display: none;
+ }
+
+ .faq-item.active .faq-answer {
+     display: block;
+ }
+
+ .faq-item.active .faq-question i {
+     transform: rotate(180deg);
+ }
+
+ /* Student Details Form */
+ .student-details-form {
+     background: white;
+     padding: 2rem;
+     border-radius: 15px;
+     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+ }
+
+ .form-grid-2 {
+     display: grid;
+     grid-template-columns: repeat(2, 1fr);
+     gap: 1.5rem;
+ }
+
+ @media (max-width: 768px) {
+     .form-grid-2 {
+         grid-template-columns: 1fr;
+     }
+ }
