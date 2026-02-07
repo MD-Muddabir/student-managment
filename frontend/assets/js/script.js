@@ -16,6 +16,8 @@ const menuItems = document.querySelectorAll('.menu-item');
 const contentSections = document.querySelectorAll('.content-section');
 const pageTitle = document.getElementById('pageTitle');
 const logoutBtn = document.getElementById('logoutBtn');
+// const API_BASE = 'http://localhost:3000';
+// let currentStudentId = null;
 
 
 // ========== CONSTANTS ==========
@@ -30,8 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeClock();
     initializeNavigation();
     initializeLogout();
-    // fetchStudents(); // This handles updating analytics too
 
+    const params = new URLSearchParams(window.location.search);
+    currentStudentId = params.get('id');
+
+    if (!currentStudentId) {
+        console.error("Student ID missing in URL");
+        return;
+    }
+
+    // fetchEnrolledCourses();
+    // fetchAllCourses();
     // Start clock update
     setInterval(updateClock, 1000);
 });
@@ -391,3 +402,49 @@ window.editStudent = editStudent;
 window.deleteStudent = deleteStudent;
 
 console.log('%c🎓 Student Management System Loaded', 'color: #4f7cff; font-weight: bold;');
+
+
+// ================= FETCH ALL COURSES =================
+async function fetchAllCourses() {
+    try {
+        const response = await fetch(`${API_BASE}/courses`);
+        const result = await response.json();
+        const allCoursesContainer = document.querySelector('#courses-section .cards-grid');
+        if (result.success && allCoursesContainer) {
+            allCoursesContainer.innerHTML = '';
+            // Clear static content 
+            result.data.forEach(course => {
+                // Check uppercase or lowercase keys from DB 
+                const mappedCourse = {
+                    cname: course.Cname || course.cname || 'Untitled Course', code: course.Ccode || course.code || 'N/A', duration: course.duration || 'N/A',
+                    description: course.description || '', price: course.price || 'N/A',
+                    CID: course.CID || course.cid
+                }; allCoursesContainer.appendChild(createCourseCard(mappedCourse, false));
+            });
+        }
+    } catch (error) { console.error('Error fetching all courses:', error); }
+}
+
+// ================= COURSE CARD =================
+function createCourseCard(course, isEnrolled) {
+    const card = document.createElement('div');
+    card.className = 'info-card';
+
+    const color = getColorForCourse(course.code || 'DEF');
+    card.style.borderLeft = `5px solid ${color}`;
+
+    const button = isEnrolled
+        ? `<button class="btn-secondary" style="width:100%;margin-top:1rem">Continue Learning</button>`
+        : `<button class="btn-primary" style="width:100%;margin-top:1rem"
+              onclick="enrollInCourse(${course.CID}, '${course.cname}')">Enroll Now</button>`;
+
+    card.innerHTML = `
+        <h3>${course.cname}</h3>
+        <p><strong>Code:</strong> ${course.code}</p>
+        <p><strong>Duration:</strong> ${course.duration}</p>
+        <p><strong>Description:</strong> ${course.description}</p>
+        <b style="color: #ff6b6b;"><strong>Price:</strong> ${course.price}</b>
+        ${button}
+    `;
+    return card;
+}

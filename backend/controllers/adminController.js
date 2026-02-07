@@ -1,5 +1,6 @@
 const courseModel = require("../models/courseModel");
 const facultyModel = require("../models/facultyModel");
+const userModel = require("../models/userModel");
 
 // Course Count
 
@@ -55,16 +56,16 @@ exports.getStudentCount = (req, res) => {
 // Total Count
 
 exports.getTotalCount = (req, res) => {
-    facultyModel.getTotalCount((err, result) => {
+    userModel.getTotalUser((err, result) => {
         if (err) {
             return res.status(400).json({
                 success: false,
-                message: sqlMessage
+                message: err.sqlMessage
             })
         }
         res.json({
             success: true,
-            data: result[0].totalCount
+            data: result[0].totalUsers
         })
     })
 }

@@ -17,17 +17,44 @@ let currentStudentId = null;
 
 // ================= INIT =================
 document.addEventListener('DOMContentLoaded', () => {
+    checkStudentStatus(); // Check if student details already exist
+
     const params = new URLSearchParams(window.location.search);
     currentStudentId = params.get('id');
 
-    if (!currentStudentId) {
-        console.error("Student ID missing in URL");
-        return;
+    if (currentStudentId) {
+        // fetchEnrolledCourses();
     }
-
-    // fetchEnrolledCourses();
     fetchAllCourses();
 });
+
+// ================= CHECK STUDENT STATUS =================
+async function checkStudentStatus() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/student/me`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const result = await response.json();
+
+        const studentForm = document.getElementById('studentDetailsForm');
+        const courseFormContainer = document.getElementById('courseDetailsFormContainer');
+
+        if (result.success && result.exists) {
+            // Student details exist -> Show Course Details Form
+            if (studentForm) studentForm.style.display = 'none';
+            if (courseFormContainer) courseFormContainer.style.display = 'block';
+        } else {
+            // Student details NOT exist -> Show Student Details Form
+            if (studentForm) studentForm.style.display = 'block';
+            if (courseFormContainer) courseFormContainer.style.display = 'none';
+        }
+    } catch (error) {
+        console.error("Error checking student status:", error);
+    }
+}
 
 // ================= FETCH ENROLLED COURSES =================
 // async function fetchEnrolledCourses() {
@@ -68,7 +95,7 @@ async function fetchAllCourses() {
                 // Check uppercase or lowercase keys from DB 
                 const mappedCourse = {
                     cname: course.Cname || course.cname || 'Untitled Course', code: course.Ccode || course.code || 'N/A', duration: course.duration || 'N/A',
-                    // description: course.description || '',
+                    description: course.description || '', price: course.price || 'N/A',
                     CID: course.CID || course.cid
                 }; allCoursesContainer.appendChild(createCourseCard(mappedCourse, false));
             });
@@ -93,20 +120,22 @@ function createCourseCard(course, isEnrolled) {
         <h3>${course.cname}</h3>
         <p><strong>Code:</strong> ${course.code}</p>
         <p><strong>Duration:</strong> ${course.duration}</p>
+        <p><strong>Description:</strong> ${course.description}</p>
+        <b style="color: #ff6b6b;"><strong>Price:</strong> ${course.price}</b>
         ${button}
     `;
     return card;
 }
 
 // ================= ENROLL COURSE =================
-async function enrollInCourse(courseId, courseName) {
-    if (!confirm(`Enroll in ${courseName}?`)) return;
+async function enrollInCourse(CID, cname) {
+    if (!confirm(`Enroll in ${cname}?`)) return;
 
     try {
-        const response = await fetch(`${API_BASE}/students/${currentStudentId}/enroll`, {
+        const response = await fetch(`${API_BASE}/student/SID/courses`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ courseId })
+            body: JSON.stringify({ CID })
         });
 
         const result = await response.json();
@@ -195,7 +224,7 @@ function submitDetails(e) {
 
     const token = localStorage.getItem("token");
 
-    console.log("JWT Token:", token);
+    // console.log("JWT Token:", token);
 
     if (!token) {
         alert("Session expired. Please login again.");
@@ -203,7 +232,7 @@ function submitDetails(e) {
         return;
     }
 
-    console.log("JWT Token:", localStorage.getItem("token"));
+    // console.log("JWT Token:", localStorage.getItem("token"));
 
     fetch(`${API_BASE}/student/add`, {
         method: "POST",
@@ -219,6 +248,10 @@ function submitDetails(e) {
             if (result.success) {
                 alert("Details submitted successfully");
                 document.getElementById("studentDetailsForm").reset();
+
+                // Hide Student Form and Show Course Form
+                document.getElementById('studentDetailsForm').style.display = 'none';
+                document.getElementById('courseDetailsFormContainer').style.display = 'block';
             }
             else {
                 alert("Failed to submit details: " + result.message);
@@ -229,12 +262,14 @@ function submitDetails(e) {
             alert("Failed to submit details");
         });
 
-    if (!loggedInUser) {
-        alert("User not loaded yet");
-        return;
-    }
-
 }
+
+// ================= COURSE DETAILS FORM =================
+document.getElementById('courseDetailsForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    alert("Course enrollment submitted successfully!");
+    e.target.reset();
+});
 
 
 

@@ -32,7 +32,7 @@ async function fetchAllCourses() {
                 // Check uppercase or lowercase keys from DB 
                 const mappedCourse = {
                     cname: course.Cname || course.cname || 'Untitled Course', code: course.Ccode || course.code || 'N/A', duration: course.duration || 'N/A',
-                    // description: course.description || '',
+                    description: course.description || '', price: course.price || 'N/A',
                     CID: course.CID || course.cid
                 }; allCoursesContainer.appendChild(createCourseCard(mappedCourse, false));
             });
@@ -55,7 +55,9 @@ function createCourseCard(course, isEnrolled) {
     card.innerHTML = `
         <h3>${course.cname}</h3>
         <p><strong>Code:</strong> ${course.code}</p>
+        <p><strong>Description:</strong> ${course.description}</p>
         <p><strong>Duration:</strong> ${course.duration}</p>
+        <b style="color: #ff6b6b;"><strong>Price:</strong> ${course.price}</b>
         ${button}
     `;
     return card;
@@ -191,9 +193,9 @@ function createStudentRow(student) {
         <td>${student.dob}</td>
         <td>${student.phone}</td>
         <td>${student.total_courses ?? 0}</td>
-        <td>${student.address}</td>
-        <td>${student.profile_completed}</td>
-    `;
+        `;
+    // <td>${student.profile_completed}</td>
+    // <td>${student.address}</td>
 
     tdata.appendChild(row);
 }

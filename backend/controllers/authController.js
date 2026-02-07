@@ -85,7 +85,6 @@ exports.login = (req, res) => {
         }
 
         const user = results[0];
-
         // ✅ CREATE TOKEN
         const token = jwt.sign(
             { UID: user.UID },

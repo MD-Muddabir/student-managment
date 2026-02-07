@@ -17,6 +17,18 @@ exports.addStudentDetails = (data, callback) => {
     db.query(sql, data, callback);
 };
 
+// get student enrolled Courses
+exports.getEnrolledCourses = (SID, callback) => {
+    const sql = `
+        SELECT c.cname, c.description, c.duration,c.code
+        FROM enrollments e
+        JOIN courses c ON e.CID = c.CID
+        WHERE e.SID = ?;
+    `;
+    db.query(sql, [SID], callback);
+};
+
+
 // Get all students
 exports.getAllStudents = (callback) => {
     const sql = `

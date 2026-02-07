@@ -15,22 +15,53 @@ exports.getStudentName = (req, res) => {
     });
 };
 
+// Get current student details by Token UID
+exports.getCurrentStudent = (req, res) => {
+    const UID = req.user.UID;
+    studentModel.findStudentByUID(UID, (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
+
+        if (results.length > 0) {
+            // Student exists, get full details
+            studentModel.getStudentById(results[0].SID, (err2, studentData) => {
+                if (err2) return res.status(500).json({ success: false, message: err2.sqlMessage });
+                res.json({ success: true, exists: true, data: studentData[0] });
+            });
+        } else {
+            res.json({ success: true, exists: false });
+        }
+    });
+};
+
 // post add student details
 exports.addStudentDetails = (req, res) => {
 
     const UID = req.user.UID; // 🎯 FROM TOKEN
-    console.log(UID);
+    console.log("UID from token:", UID);
 
     if (!UID) {
         return res.status(401).json({ message: "Unauthorized" });
     }
 
+    // const data = results[0];
+
+    // // ✅ CREATE TOKEN
+    // const token = jwt.sign(
+    //     { SID: data.SID },
+    //     JWT_SECRET,
+    //     { expiresIn: "2h" }
+    // );
     const { sname, gender, dob, sphone, address } = req.body;
 
-    studentModel.addStudentDetails([UID, sname, gender, dob, sphone, address, 1], (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
-        res.json({ success: true, data: results });
-    });
+    studentModel.addStudentDetails([UID, sname, gender, dob, sphone, address, 1],
+        (err, results) => {
+            if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
+            res.json({
+                success: true,
+                message: "Student details added successfully",
+                SID: results.insertId   // 🎯 AUTO-GENERATED
+            });
+        });
 };
 
 // Get all courses
@@ -38,6 +69,24 @@ exports.getAllCourses = (req, res) => {
     courseModel.getAllCourses((err, results) => {
         if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
         res.json({ success: true, data: results });
+    });
+};
+
+// Get student enrolled Courses
+exports.getEnrolledCourses = (req, res) => {
+
+    const SID = req.data.SID; // 🎯 FROM TOKEN
+
+    if (!SID) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    studentModel.getEnrolledCourses(SID, (err, results) => {
+        if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
+        res.json({
+            success: true,
+            data: results
+        });
     });
 };
 

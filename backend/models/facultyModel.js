@@ -24,3 +24,4 @@ exports.getStudentDetails = (callback) => {
     	s.SID,s.sname,u.uemail,s.gender,s.dob,s.phone,s.address,s.profile_completed;`;
     db.query(sql, callback);
 };
+

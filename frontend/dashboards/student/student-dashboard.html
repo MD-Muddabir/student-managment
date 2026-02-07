@@ -245,6 +245,39 @@
                     <button type="submit" class="btn-primary">Submit Details</button>
                 </div>
             </form>
+
+            <!-- Course Details Form (Hidden by default) -->
+            <div id="courseDetailsFormContainer" style="display: none; margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">Course Enrollment Details</h3>
+                <form class="student-details-form" id="courseDetailsForm">
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label for="cname">Course Name</label>
+                            <input type="text" id="cname" name="cname" required placeholder="Web Development">
+                        </div>
+                        <div class="form-group">
+                            <label for="ccode">Course Code</label>
+                            <input type="text" id="ccode" name="ccode" required placeholder="WEB101">
+                        </div>
+                        <div class="form-group">
+                            <label for="cduration">Course Duration</label>
+                            <input type="text" id="cduration" name="cduration" required placeholder="3 Months">
+                        </div>
+                        <div class="form-group">
+                            <label for="cprice">Course Price</label>
+                            <input type="text" id="cprice" name="cprice" required placeholder="$99">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="cdescription">Course Description</label>
+                            <textarea id="cdescription" name="cdescription" rows="3" required
+                                placeholder="Description..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 2rem; text-align: right;">
+                        <button type="submit" class="btn-primary">Buy / Enroll / Submit</button>
+                    </div>
+                </form>
+            </div>
         </section>
 
         <!-- All Courses Section (Previously Manage Subjects) -->

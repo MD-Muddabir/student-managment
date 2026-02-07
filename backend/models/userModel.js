@@ -56,3 +56,10 @@ exports.getCourseCount = (callback) => {
     db.query(sql, callback);
 }
 
+// Total User
+exports.getTotalUser = (callback) => {
+    const sql = `SELECT COUNT(*) AS totalUsers FROM users`;
+    db.query(sql, callback);
+}
+
+
