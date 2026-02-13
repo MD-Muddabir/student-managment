@@ -10,6 +10,7 @@ module.exports = (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
+
     console.log("JWT Token:", token);
     console.log("Auth Header:", req.headers.authorization);
 

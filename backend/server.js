@@ -16,6 +16,7 @@ const authRoutes = require("./routes/authRouters");
 const studentRoutes = require("./routes/studentRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const announcementRoutes = require("./routes/announcementRoutes");
 
 const server = express();
 const port = 3000;
@@ -56,6 +57,7 @@ server.use("/", authRoutes);
 server.use("/", studentRoutes);
 server.use("/", adminRoutes);
 server.use("/", facultyRoutes);
+server.use("/announcements", announcementRoutes);
 
 
 

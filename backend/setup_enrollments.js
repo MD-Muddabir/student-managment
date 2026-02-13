@@ -3,7 +3,7 @@ const db = require("./config/db");
 // Enroll student in course
 exports.enrollStudent = (SID, CID, callback) => {
     const sql = `
-        INSERT INTO enrolled_courses (SID, CID)
+        INSERT INTO enrollments (SID, CID)
         VALUES (?, ?)
     `;
     db.query(sql, [SID, CID], callback);
@@ -13,7 +13,7 @@ exports.enrollStudent = (SID, CID, callback) => {
 exports.getStudentCourses = (SID, callback) => {
     const sql = `
         SELECT c.CID, c.Cname, c.code, c.duration
-        FROM enrolled_courses ec
+        FROM enrollments ec
         JOIN courses c ON ec.CID = c.CID
         WHERE ec.SID = ?
     `;

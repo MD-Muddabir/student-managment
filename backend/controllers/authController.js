@@ -85,12 +85,6 @@ exports.login = (req, res) => {
         }
 
         const user = results[0];
-        // ✅ CREATE TOKEN
-        const token = jwt.sign(
-            { UID: user.UID },
-            JWT_SECRET,
-            { expiresIn: "2h" }
-        );
 
         if (user.upassword !== password) {
             return res.json({
@@ -117,6 +111,21 @@ exports.login = (req, res) => {
                 message: "User is inactive ... !"
             });
         }
+
+        // ✅ CREATE TOKEN
+        // const token = jwt.sign(
+        //     { UID: user.UID },
+        //     JWT_SECRET,
+        //     { expiresIn: "2h" }
+        // );
+
+        // ✅ CREATE TOKEN (ONLY HERE)
+        const token = jwt.sign(
+            { UID: user.UID, role: user.role },
+            JWT_SECRET,
+            { expiresIn: "2h" }
+        );
+
         res.json({
             success: true,
             message: "Login successful",

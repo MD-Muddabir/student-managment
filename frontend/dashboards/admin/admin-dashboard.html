@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/adminDashboard.css">
+    <link rel="stylesheet" href="../../assets/css/facultyDashboard.css">
+    <link rel="stylesheet" href="../../assets/css/studentDashboard.css">
 </head>
 
 <body>
@@ -49,9 +52,9 @@
                         <i class="fas fa-th-large"></i>
                         <span>Manage Sections</span>
                     </li>
-                    <li class="menu-item" data-section="subjects">
+                    <li class="menu-item" data-section="courses">
                         <i class="fas fa-book"></i>
-                        <span>Manage Subjects</span>
+                        <span>Manage Courses</span>
                     </li>
                     <li class="menu-item" data-section="strands">
                         <i class="fas fa-layer-group"></i>
@@ -88,18 +91,42 @@
                 <button class="menu-toggle" id="menuToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h2 class="page-title" id="pageTitle">Faculty Portal</h2>
+                <h2 class="page-title" id="pageTitle">Admin Portal</h2>
             </div>
             <div class="navbar-right">
-                <button class="nav-icon-btn">
+                <button class="nav-icon-btn" id="notificationBtn">
                     <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
+                    <span class="badge" id="notificationBadge">0</span>
                 </button>
                 <button class="nav-icon-btn" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </nav>
+
+        <!-- Notification Sidebar -->
+        <div class="notification-overlay" id="notificationOverlay">
+            <div class="notification-sidebar">
+                <div class="notification-header">
+                    <h3><i class="fas fa-bell"></i> Notifications</h3>
+                    <button class="close-btn" id="closeNotificationBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="notification-content" id="notificationContent">
+                    <div class="loading-spinner" id="notificationLoading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div id="announcementsListNotification">
+                        <!-- Announcements will be loaded here -->
+                    </div>
+                    <div class="no-notifications" id="noNotifications" style="display: none;">
+                        <i class="fas fa-inbox"></i>
+                        <p>No announcements yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Dashboard Section -->
         <section class="content-section active" id="dashboard-section">
@@ -155,6 +182,16 @@
                         <div class="card-content">
                             <h2 class="card-number" id="totalUsers">10</h2>
                             <p class="card-label">TOTAL</p>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card card-purple">
+                        <div class="card-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="card-content">
+                            <h2 class="card-number" id="totalEnrollStudents">8</h2>
+                            <p class="card-label">TOTAL ENROLL STUDENTS</p>
                         </div>
                     </div>
                 </div>
@@ -219,7 +256,7 @@
         <section class="content-section" id="students-section">
             <div class="section-header">
                 <h2>Manage Students</h2>
-                <button class="btn-primary" id="addStudentBtn">
+                <button class="btn-primary" id="addStudentBtn" onclick="openAddStudentModal()">
                     <i class="fas fa-plus-circle"></i>
                     Add New Student
                 </button>
@@ -232,16 +269,127 @@
                             <th>
                                 <input type="checkbox" id="selectAll">
                             </th>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Gender</th>
-                            <th>DOB</th>
-                            <th>Phone</th>
-                            <th>Course</th>
+                            <th id="studentId">ID</th>
+                            <th id="studentName">Name</th>
+                            <th id="studentEmail">Email</th>
+                            <th id="studentGender">Gender</th>
+                            <th id="studentDOB">DOB</th>
+                            <th id="studentPhone">Phone</th>
+                            <th id="studentCourse">Course</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
+
+                    <!-- Add Student Modal -->
+                    <div id="addStudentModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2>Add New Student</h2>
+
+                            <form id="addStudentForm">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="addName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="addEmail" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="addGender" required>
+                                        <option value="">Select</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Date of Birth</label>
+                                    <input type="date" id="addDob" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" id="addPhone" required>
+                                </div>
+
+                                <div class="modal-actions">
+                                    <button type="submit" class="btn-primary">Add Student</button>
+                                    <button type="button" class="btn-secondary"
+                                        onclick="closeAddStudentModal()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Edit Student Modal -->
+                    <div id="editStudentModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2>Edit Student</h2>
+
+                            <form id="editStudentForm">
+                                <input type="hidden" id="editStudentId">
+
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="editName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="editEmail" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="editGender" required>
+                                        <option value="">Select</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Date of Birth</label>
+                                    <input type="date" id="editDob" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" id="editPhone" required>
+                                </div>
+
+                                <div class="modal-actions">
+                                    <button type="submit" class="btn-primary">Update</button>
+                                    <button type="button" class="btn-secondary"
+                                        onclick="closeEditStudentModal()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Delete Student Modal -->
+                    <div id="deleteStudentModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2 style="color:#e74c3c;">Delete Student</h2>
+                            <p style="margin:15px 0;">
+                                Are you sure you want to delete this student?<br>
+                                <b>This action cannot be undone.</b>
+                            </p>
+
+                            <div class="modal-actions">
+                                <button class="btn-delete1" id="confirmDeleteBtn">
+                                    Yes, Delete
+                                </button>
+                                <button class="btn-secondary" onclick="closeDeleteStudentModal()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <tbody id="studentsTableBody">
                         <!-- Data will be populated by JS -->
                     </tbody>
@@ -288,12 +436,12 @@
         <section class="content-section" id="sections-section">
             <div class="section-header">
                 <h2>Manage Sections</h2>
-                <button class="btn-primary">
+                <button class="btn-primary" id="addSectionBtn">
                     <i class="fas fa-plus-circle"></i>
                     Add New Section
                 </button>
             </div>
-            <div class="cards-grid">
+            <div class="cards-grid" id="sectionsContainer">
                 <div class="info-card">
                     <h3>Section A</h3>
                     <p>Students: 25</p>
@@ -305,44 +453,118 @@
                     <button class="btn-secondary">View Details</button>
                 </div>
             </div>
+
+            <div class="modal" id="addSectionModal" style="display:none;">
+                <div class="modal-content">
+                    <h3>Add New Section</h3>
+
+                    <input type="text" id="sectionNameInput" placeholder="Enter Section Name" />
+
+                    <div class="modal-actions">
+                        <button class="btn-secondary" onclick="closeSectionModal()">Cancel</button>
+                        <button class="btn-primary" onclick="saveSection()">Save</button>
+                    </div>
+                </div>
+            </div>
+
+
         </section>
 
         <!-- Subjects Management -->
-        <section class="content-section" id="subjects-section">
+
+        <!-- All Courses Section (Previously Manage Subjects) -->
+        <section class="content-section" id="courses-section">
             <div class="section-header">
-                <h2>Manage Subjects</h2>
-                <button class="btn-primary">
+                <h2>Available Courses</h2>
+                <button class="btn-primary" id="addCourseBtn" onclick="openAddCourseModal()">
                     <i class="fas fa-plus-circle"></i>
-                    Add New Subject
+                    Add New Course
                 </button>
             </div>
-            <div class="cards-grid">
-                <div class="info-card">
-                    <h3>WEB DEVELOPMENT</h3>
-                    <p>Code: WEB101</p>
-                    <button class="btn-secondary">Edit</button>
+            <div class="cards-grid" id="facultyCoursesContainer">
+                <!-- Dynamic cards -->
+            </div>
+
+            <!-- <div class="cards-grid">
+
+            </div> -->
+            <!-- ADD COURSE MODAL -->
+            <!-- <div class="modal1" id="addCourseModal" style="display:none;">
+                <div class="modal-content">
+                    <h3>Add New Course</h3>
+
+                    <input id="courseName" placeholder="Course Name" />
+                    <input id="courseCode" placeholder="Course Code" />
+                    <input id="courseDuration" placeholder="Duration (e.g. 3 Months)" />
+                    <input id="coursePrice" placeholder="Price" />
+                    <textarea id="courseDescription" placeholder="Description"></textarea>
+
+                    <div class="modal-actions">
+                        <button class="btn-secondary" onclick="closeCourseModal()">Cancel</button>
+                        <button class="btn-primary" onclick="saveCourse()">Save Course</button>
+                    </div>
                 </div>
-                <div class="info-card">
-                    <h3>SQL</h3>
-                    <p>Code: SQL101</p>
-                    <button class="btn-secondary">Edit</button>
-                </div>
-                <div class="info-card">
-                    <h3>REACT FRAMEWORK</h3>
-                    <p>Code: RF101</p>
-                    <button class="btn-secondary">Edit</button>
-                </div>
-                <div class="info-card">
-                    <h3>CORE JAVA</h3>
-                    <p>Code: JP101</p>
-                    <button class="btn-secondary">Edit</button>
-                </div>
-                <div class="info-card">
-                    <h3>ADVANCED JAVA</h3>
-                    <p>Code: JP102</p>
-                    <button class="btn-secondary">Edit</button>
+            </div> -->
+
+            <!-- ================= Add Course Modal ================= -->
+            <div id="addCourseModal" class="modal-overlay">
+                <div class="modal-box">
+                    <h3>Add Course</h3>
+
+                    <form id="addCourseForm">
+                        <div class="form-group">
+                            <label>Course Name</label>
+                            <input type="text" id="courseName" placeholder="Course Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course Code</label>
+                            <input type="text" id="courseCode" placeholder="Course Code" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course Duration</label>
+                            <input type="text" id="courseDuration" placeholder="Duration" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course Price</label>
+                            <input type="number" id="coursePrice" placeholder="Price" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course Description</label>
+                            <textarea id="courseDescription" placeholder="Description" required></textarea>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-primary">Save</button>
+                            <button type="button" class="btn-secondary" onclick="closeAddCourseModal()">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
+
+            <!-- ================= Edit Course Modal ================= -->
+            <div id="editCourseModal" class="modal-overlay">
+                <div class="modal-box">
+                    <h3>Edit Course</h3>
+
+                    <form id="editCourseForm">
+                        <input type="hidden" id="editCourseId" />
+
+                        <input type="text" id="editCourseName" required />
+                        <input type="text" id="editCourseCode" required />
+                        <input type="text" id="editCourseDuration" required />
+                        <input type="number" id="editCoursePrice" required />
+                        <textarea id="editCourseDescription" required></textarea>
+
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-primary">Update</button>
+                            <button type="button" class="btn-secondary" onclick="closeEditCourseModal()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+
         </section>
 
         <!-- Strands Management -->
@@ -372,7 +594,7 @@
         <section class="content-section" id="teachers-section">
             <div class="section-header">
                 <h2>Manage Teachers</h2>
-                <button class="btn-primary">
+                <button class="btn-primary" id="addFacultyBtn" onclick="openAddFacultyModal()">
                     <i class="fas fa-plus-circle"></i>
                     Add New Teacher
                 </button>
@@ -381,23 +603,172 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Subject</th>
-                            <th>Actions</th>
+                            <th>
+                                <input type="checkbox" id="selectAll">
+                            </th>
+                            <th id="facultyId">ID</th>
+                            <th id="facultyName">Name</th>
+                            <th id="facultyEmail">Email</th>
+                            <th id="facultyGender">Gender</th>
+                            <th id="facultyDOB">DOB</th>
+                            <th id="facultyPhone">Phone</th>
+                            <th id="facultySubject">Subject</th>
+                            <th id="facultyCourses">Courses</th>
+                            <th id="facultyActions">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="teachersTableBody">
-                        <tr>
-                            <td>1</td>
-                            <td>John Doe</td>
-                            <td>john@example.com</td>
-                            <td>Mathematics</td>
-                            <td>
+
+                    <!-- Add Faculty Modal -->
+                    <div id="addFacultyModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2>Add New Faculty</h2>
+
+                            <form id="addFacultyForm">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="addfacultyName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="addfacultyEmail" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="addfacultyGender" required>
+                                        <option value="">Select</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Date of Birth</label>
+                                    <input type="date" id="addfacultyDob" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" id="addfacultyPhone" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Department</label>
+                                    <input type="text" id="addfacultyDepartment" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Qualification</label>
+                                    <input type="text" id="addfacultyQualification" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Experience</label>
+                                    <input type="text" id="addfacultyExperience" required>
+                                </div>
+
+                                <div class="modal-actions">
+                                    <button type="submit" class="btn-primary">Add Faculty</button>
+                                    <button type="button" class="btn-secondary"
+                                        onclick="closeAddFacultyModal()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Edit Faculty Modal -->
+                    <div id="editFacultyModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2>Edit Faculty</h2>
+
+                            <form id="editFacultyForm">
+                                <input type="hidden" id="editFacultyId">
+
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="editFacultyName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="editFacultyEmail" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="editFacultyGender" required>
+                                        <option value="">Select</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Date of Birth</label>
+                                    <input type="date" id="editFacultyDob" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" id="editFacultyPhone" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Department</label>
+                                    <input type="text" id="editFacultyDepartment" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Qualification</label>
+                                    <input type="text" id="editFacultyQualification" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Experience</label>
+                                    <input type="text" id="editFacultyExperience" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Course Names</label>
+                                    <input type="text" id="editFacultyCourseNames" required>
+                                </div>
+
+
+                                <div class="modal-actions">
+                                    <button type="submit" class="btn-primary">Update</button>
+                                    <button type="button" class="btn-secondary"
+                                        onclick="closeEditFacultyModal()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Delete Faculty Modal -->
+                    <div id="deleteFacultyModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2 style="color:#e74c3c;">Delete Faculty</h2>
+                            <p style="margin:15px 0;">
+                                Are you sure you want to delete this faculty?<br>
+                                <b>This action cannot be undone.</b>
+                            </p>
+
+                            <div class="modal-actions">
+                                <button class="btn-delete1" id="fconfirmDeleteBtn">
+                                    Yes, Delete
+                                </button>
+                                <button class="btn-secondary" onclick="closeDeleteFacultyModal()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <tbody id="facultyTableBody">
+                        <!-- <td>
                                 <button class="btn-icon"><i class="fas fa-edit"></i></button>
                                 <button class="btn-icon"><i class="fas fa-trash"></i></button>
-                            </td>
+                            </td> -->
                         </tr>
                     </tbody>
                 </table>
@@ -434,42 +805,70 @@
             <div class="section-header">
                 <h2>Account Settings</h2>
             </div>
-            <div class="form-container">
-                <form class="settings-form">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="settingsName" value="Mark S. Calendario" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="settingsEmail" value="mark@example.com" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Phone Number</label>
-                            <input type="tel" id="settingsPhone" value="N/A" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Role</label>
-                            <input type="text" id="settingsRole" value="Student" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Current Password</label>
-                            <input type="password" placeholder="Enter current password">
-                        </div>
-                        <div class="form-group">
-                            <label>New Password</label>
-                            <input type="password" placeholder="Enter new password">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">Save Changes</button>
-                </form>
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <img src="../../assets/images/Frame-2147224445-6.png" class="profile-pic">
+                <h2 id="displayName">Mohd Muddabiruszama</h2>
+                <p class="role-text">Admin</p>
             </div>
+
+            <!-- Contact Info -->
+            <div class="card">
+                <h3>Contact Information</h3>
+
+                <i class="fas fa-user icon-left"></i>
+                <label>Faculty ID</label>
+                <input type="text" id="settingsID" placeholder="ID" readonly>
+
+                <i class="fas fa-user icon-left"></i>
+                <label>Full Name</label>
+                <input type="text" id="settingsName" placeholder="Name" readonly>
+
+                <i class="fas fa-envelope icon-left"></i>
+                <label>Email</label>
+                <input type="email" id="settingsEmail" placeholder="Email" readonly>
+
+                <i class="fas fa-phone icon-left"></i>
+                <label>Phone</label>
+                <input type="tel" id="settingsPhone" placeholder="Phone Number" readonly maxlength="10" value="+91 "
+                    inputmode="numeric" pattern="[0-9]{10}" />
+
+                <i class="fas fa-map-marker-alt icon-left"></i>
+                <label>Address</label>
+                <input type="text" id="settingsAddress" placeholder="Address" readonly>
+            </div>
+
+            <!-- Password Section -->
+            <div class="card password-section" id="passwordSection">
+                <h3>Change Password</h3>
+
+                <i class="fas fa-lock icon-left"></i>
+                <label>Current Password</label>
+                <input type="password" id="currentPassword">
+
+                <i class="fas fa-lock icon-left"></i>
+                <label>New Password</label>
+                <input type="password" id="newPassword">
+
+                <i class="fas fa-lock icon-left"></i>
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPassword">
+            </div>
+
+            <!-- Buttons -->
+            <div class="btn-group">
+                <button id="editBtn" onclick="enableEdit()">Edit Profile</button>
+                <button id="saveBtn" disabled>Save Changes</button>
+            </div>
+
         </section>
     </main>
 
     <script src="../../assets/js/script.js"></script>
     <script src="../../assets/js/adminDashboard.js"></script>
+    <!-- <script src="../../assets/js/studentDashboard.js"></script> -->
+    <!-- <script src="../../assets/js/facultyDashboard.js"></script> -->
+
 </body>
 
 </html>

@@ -16,53 +16,85 @@ exports.getStudentName = (req, res) => {
 };
 
 // Get current student details by Token UID
-exports.getCurrentStudent = (req, res) => {
-    const UID = req.user.UID;
-    studentModel.findStudentByUID(UID, (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
+// exports.getCurrentStudent = (req, res) => {
+//     const UID = req.user.UID;
+//     studentModel.findStudentByUID(UID, (err, results) => {
+//         if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
 
-        if (results.length > 0) {
-            // Student exists, get full details
-            studentModel.getStudentById(results[0].SID, (err2, studentData) => {
-                if (err2) return res.status(500).json({ success: false, message: err2.sqlMessage });
-                res.json({ success: true, exists: true, data: studentData[0] });
-            });
-        } else {
-            res.json({ success: true, exists: false });
+//         if (results.length > 0) {
+//             // Student exists, get full details
+//             studentModel.getStudentById(results[0].SID, (err2, studentData) => {
+//                 if (err2) return res.status(500).json({ success: false, message: err2.sqlMessage });
+//                 res.json({ success: true, exists: true, data: studentData[0] });
+//             });
+//         } else {
+//             res.json({ success: true, exists: false });
+//         }
+//     });
+// };
+exports.getCurrentStudent = (req, res) => {
+    studentModel.findStudentByUID(req.user.UID, (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+
+        if (!rows.length) {
+            return res.json({ success: true, exists: false });
         }
+
+        studentModel.getAccountSettings(req.user.UID)
+            .then(data => {
+                res.json({ success: true, exists: true, data });
+            });
     });
 };
 
 // post add student details
+// exports.addStudentDetails = (req, res) => {
+
+//     const UID = req.user.UID; // 🎯 FROM TOKEN
+//     console.log("UID from token:", UID);
+
+//     if (!UID) {
+//         return res.status(401).json({ message: "Unauthorized" });
+//     }
+
+//     // const data = results[0];
+
+//     // // ✅ CREATE TOKEN
+//     // const token = jwt.sign(
+//     //     { SID: data.SID },
+//     //     JWT_SECRET,
+//     //     { expiresIn: "2h" }
+//     // );
+//     const { sname, gender, dob, sphone, address } = req.body;
+
+//     studentModel.addStudentDetails([UID, sname, gender, dob, sphone, address, 1],
+//         (err, results) => {
+//             if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
+//             res.json({
+//                 success: true,
+//                 message: "Student details added successfully",
+//                 SID: results.insertId   // 🎯 AUTO-GENERATED
+//             });
+//         });
+// };
 exports.addStudentDetails = (req, res) => {
-
-    const UID = req.user.UID; // 🎯 FROM TOKEN
-    console.log("UID from token:", UID);
-
-    if (!UID) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    // const data = results[0];
-
-    // // ✅ CREATE TOKEN
-    // const token = jwt.sign(
-    //     { SID: data.SID },
-    //     JWT_SECRET,
-    //     { expiresIn: "2h" }
-    // );
     const { sname, gender, dob, sphone, address } = req.body;
+    const UID = req.user.UID;
 
-    studentModel.addStudentDetails([UID, sname, gender, dob, sphone, address, 1],
-        (err, results) => {
-            if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
-            res.json({
-                success: true,
-                message: "Student details added successfully",
-                SID: results.insertId   // 🎯 AUTO-GENERATED
-            });
-        });
+    studentModel.addStudentDetails(
+        [UID, sname, gender, dob, sphone, address, 1],
+        (err, result) => {
+            if (err) {
+                if (err.code === "ER_DUP_ENTRY") {
+                    return res.json({ success: false, message: "Profile already exists" });
+                }
+                return res.status(500).json({ success: false });
+            }
+            res.json({ success: true, SID: result.insertId });
+        }
+    );
 };
+
 
 // Get all courses
 exports.getAllCourses = (req, res) => {
@@ -73,42 +105,113 @@ exports.getAllCourses = (req, res) => {
 };
 
 // Get student enrolled Courses
-exports.getEnrolledCourses = (req, res) => {
+// exports.enrollStudent = (req, res) => {
 
-    const SID = req.data.SID; // 🎯 FROM TOKEN
+//     const UID = req.user.UID;
+//     const { courseId } = req.body;
 
-    if (!SID) {
-        return res.status(401).json({ message: "Unauthorized" });
+//     if (!courseId) {
+//         return res.status(400).json({ success: false, message: "Course ID required" });
+//     }
+
+//     // Step 1: UID → SID
+//     studentModel.findStudentByUID(UID, (err, students) => {
+//         if (err) {
+//             return res.status(500).json({ success: false, message: err.sqlMessage });
+//         }
+
+//         if (students.length === 0) {
+//             return res.status(404).json({ success: false, message: "Student profile not found" });
+//         }
+
+//         const SID = students[0].SID;
+
+//         // Step 2: Enroll
+//         studentModel.enrollStudent(SID, courseId, (err2) => {
+//             if (err2) {
+//                 if (err2.code === "ER_DUP_ENTRY") {
+//                     return res.status(400).json({
+//                         success: false,
+//                         message: "Already enrolled in this course"
+//                     });
+//                 }
+//                 return res.status(500).json({ success: false, message: err2.sqlMessage });
+//             }
+
+//             res.json({
+//                 success: true,
+//                 message: "Course enrolled successfully"
+//             });
+//         });
+//     });
+// };
+exports.enrollStudent = (req, res) => {
+    const UID = req.user.UID;
+    const { courseId } = req.body;
+
+    if (!courseId) {
+        return res.status(400).json({
+            success: false,
+            message: "Course ID required"
+        });
     }
 
-    studentModel.getEnrolledCourses(SID, (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
-        res.json({
-            success: true,
-            data: results
+    // UID → SID
+    studentModel.findStudentByUID(UID, (err, rows) => {
+        if (err) return res.status(500).json({ success: false });
+
+        if (!rows.length) {
+            return res.status(404).json({
+                success: false,
+                message: "Student profile not found"
+            });
+        }
+
+        const SID = rows[0].SID;
+
+        // ✅ enroll
+        studentModel.enrollStudent(SID, courseId, (err2) => {
+            if (err2) {
+                if (err2.message === "ALREADY_ENROLLED") {
+                    return res.json({
+                        success: false,
+                        message: "Already enrolled in this course"
+                    });
+                }
+                return res.status(500).json({
+                    success: false,
+                    message: err2.message
+                });
+            }
+
+            res.json({
+                success: true,
+                message: "Course enrolled successfully"
+            });
         });
     });
 };
 
-// Enroll student
-exports.enrollStudent = (req, res) => {
-    const studentId = req.params.id;
-    const { courseId } = req.body;
 
-    if (!courseId) {
-        return res.status(400).json({ success: false, message: "Course ID required" });
-    }
+// // Enroll student
+// exports.enrollStudent = (req, res) => {
+//     const studentId = req.params.id;
+//     const { courseId } = req.body;
 
-    studentModel.enrollStudent(studentId, courseId, (err, result) => {
-        if (err) {
-            if (err.code === 'ER_DUP_ENTRY') {
-                return res.status(400).json({ success: false, message: "This course is already enrolled." });
-            }
-            return res.status(500).json({ success: false, message: err.sqlMessage });
-        }
-        res.json({ success: true, message: "Enrolled successfully" });
-    });
-};
+//     if (!courseId) {
+//         return res.status(400).json({ success: false, message: "Course ID required" });
+//     }
+
+//     studentModel.enrollStudent(studentId, courseId, (err, result) => {
+//         if (err) {
+//             if (err.code === 'ER_DUP_ENTRY') {
+//                 return res.status(400).json({ success: false, message: "This course is already enrolled." });
+//             }
+//             return res.status(500).json({ success: false, message: err.sqlMessage });
+//         }
+//         res.json({ success: true, message: "Enrolled successfully" });
+//     });
+// };
 
 // Get all students
 exports.getAllStudents = (req, res) => {
@@ -325,6 +428,97 @@ exports.getStudentDetails = (req, res) => {
                 role: user.role,
                 phone: user.sphone || 'N/A'
             }
+        });
+    });
+};
+
+// FETCH ACCOUNT SETTINGS
+exports.getAccountSettings = async (req, res) => {
+    try {
+        const uid = req.user.UID; // from JWT
+        const data = await studentModel.getAccountSettings(uid);
+
+        res.json({
+            success: true,
+            data: data
+        });
+    } catch (err) {
+        console.error("Error fetching account settings:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// UPDATE ACCOUNT SETTINGS
+exports.updateAccountSettings = async (req, res) => {
+    try {
+        const uid = req.user.UID;
+
+        await studentModel.updateAccountSettings({
+            uid,
+            sname: req.body.sname,
+            phone: req.body.phone,
+            // address: req.body.address,
+            uemail: req.body.uemail
+        });
+
+        res.json({ success: true, message: "Account settings updated successfully" });
+    } catch (err) {
+        console.error("Error updating account settings:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// UPDATE PASSWORD
+exports.updatePassword = async (req, res) => {
+    try {
+        const uid = req.user.UID; // Corrected to UID
+        const { currentPassword, newPassword } = req.body;
+
+        // Verify current password
+        // Since authController uses plain text comparison, we must do the same here.
+        // We need to fetch the user's password field.
+        userModel.findUserById(uid, async (err, results) => {
+            if (err) return res.status(500).json({ success: false, message: err.sqlMessage });
+            if (results.length === 0) return res.status(404).json({ success: false, message: "User not found" });
+
+            const user = results[0];
+
+            // Plain text comparison as per authController.js
+            if (user.upassword !== currentPassword) {
+                return res.status(400).json({ success: false, message: "Incorrect current password" });
+            }
+
+            // Update password (plain text as well, since login expects plain text)
+            // Ideally should be hashed, but we must maintain consistency with existing auth.
+            // If the user wants to switch to hashing, that's a larger task involving authController.
+            // Given "fix existing", we stick to plain text or check if we should update logic.
+            // User requested "If password is match then change...".
+
+            await studentModel.updatePassword(uid, newPassword);
+
+            res.json({ success: true, message: "Password updated successfully" });
+        });
+
+    } catch (err) {
+        console.error("Error updating password:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// student Sections 
+
+exports.getStudentSections = (req, res) => {
+    const UID = req.user.UID;
+
+    studentModel.getStudentSections(UID, (err, rows) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false });
+        }
+
+        res.json({
+            success: true,
+            data: rows
         });
     });
 };

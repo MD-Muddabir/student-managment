@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/facultyDashboard.css">
+    <link rel="stylesheet" href="../../assets/css/studentDashboard.css">
 </head>
 
 <body>
@@ -36,6 +38,10 @@
                     <li class="menu-item active" data-section="dashboard">
                         <i class="fas fa-home"></i>
                         <span>Dashboard</span>
+                    </li>
+                    <li class="menu-item" data-section="student-details">
+                        <i class="fas fa-id-card"></i>
+                        <span>Faculty Details</span>
                     </li>
                     <li class="menu-item" data-section="students">
                         <i class="fas fa-user-graduate"></i>
@@ -76,9 +82,9 @@
                 <h2 class="page-title" id="pageTitle">Faculty Portal</h2>
             </div>
             <div class="navbar-right">
-                <button class="nav-icon-btn">
+                <button class="nav-icon-btn" id="notificationBtn">
                     <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
+                    <span class="badge" id="notificationBadge">0</span>
                 </button>
                 <button class="nav-icon-btn" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
@@ -142,14 +148,7 @@
                         </button>
                     </div>
                     <div class="announcements-list" id="announcementsList">
-                        <div class="announcement-item">
-                            <div class="announcement-header">
-                                <h4>Meeting</h4>
-                                <button class="btn-delete">Delete</button>
-                            </div>
-                            <p class="announcement-text">We will be having an emergency meeting today at 3:00 PM.</p>
-                            <p class="announcement-meta">Mark Calendario on April 05, 2023 at 02:21 PM</p>
-                        </div>
+                        <!-- Announcements will be loaded dynamically -->
                     </div>
                 </div>
 
@@ -179,11 +178,83 @@
             </div>
         </section>
 
+        <!-- Student Details Section (Previously Students) -->
+        <section class="content-section" id="student-details-section">
+            <div class="section-header">
+                <h2>My Details</h2>
+            </div>
+            <form class="student-details-form" id="facultyDetailsForm">
+
+                <div class="form-grid-2">
+
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="fname" name="sname" required placeholder="Name">
+                        <small class="error-text">Enter a valid name</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="semail">Email Address</label>
+                        <input type="email" id="femail" name="semail" readonly placeholder="email@example.com">
+                        <small class="error-text">Enter a valid email address</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="fgender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <small class="error-text">Select a gender</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" id="dob" name="dob" required>
+                        <small class="error-text">Enter a valid date</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="fphone" name="sphone" required placeholder="1234567890"
+                            pattern="[0-9]{10}" maxlength="10">
+                        <small class="error-text">Enter a valid phone number</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" id="faddress" name="saddress" required placeholder="Address">
+                        <small class="error-text">Enter a valid address</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" name="department" required placeholder="Department">
+                        <small class="error-text">Enter a valid department</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="qualification">Qualification</label>
+                        <input type="text" id="qualification" name="qualification" required placeholder="Qualification">
+                        <small class="error-text">Enter a valid qualification</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="experience">Experience</label>
+                        <input type="text" id="experience" name="experience" required placeholder="Experience">
+                        <small class="error-text">Enter a valid experience</small>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top: 2rem; text-align: right;">
+                    <button type="submit" class="btn-primary">Submit Details</button>
+                </div>
+            </form>
+        </section>
+
         <!-- Students Section -->
         <section class="content-section" id="students-section">
             <div class="section-header">
                 <h2>Manage Students</h2>
-                <button class="btn-primary" id="addStudentBtn">
+                <button class="btn-primary" id="addStudentBtn" onclick="openAddStudentModal()">
                     <i class="fas fa-plus-circle"></i>
                     Add New Student
                 </button>
@@ -206,6 +277,117 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
+
+                    <!-- Add Student Modal -->
+                    <div id="addStudentModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2>Add New Student</h2>
+
+                            <form id="addStudentForm">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="addName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="addEmail" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="addGender" required>
+                                        <option value="">Select</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Date of Birth</label>
+                                    <input type="date" id="addDob" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" id="addPhone" required>
+                                </div>
+
+                                <div class="modal-actions">
+                                    <button type="submit" class="btn-primary">Add Student</button>
+                                    <button type="button" class="btn-secondary"
+                                        onclick="closeAddStudentModal()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Edit Student Modal -->
+                    <div id="editStudentModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2>Edit Student</h2>
+
+                            <form id="editStudentForm">
+                                <input type="hidden" id="editStudentId">
+
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="editName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="editEmail" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="editGender" required>
+                                        <option value="">Select</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Date of Birth</label>
+                                    <input type="date" id="editDob" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" id="editPhone" required>
+                                </div>
+
+                                <div class="modal-actions">
+                                    <button type="submit" class="btn-primary">Update</button>
+                                    <button type="button" class="btn-secondary"
+                                        onclick="closeEditStudentModal()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Delete Student Modal -->
+                    <div id="deleteStudentModal" class="modal-overlay">
+                        <div class="modal-box">
+                            <h2 style="color:#e74c3c;">Delete Student</h2>
+                            <p style="margin:15px 0;">
+                                Are you sure you want to delete this student?<br>
+                                <b>This action cannot be undone.</b>
+                            </p>
+
+                            <div class="modal-actions">
+                                <button class="btn-delete1" id="confirmDeleteBtn">
+                                    Yes, Delete
+                                </button>
+                                <button class="btn-secondary" onclick="closeDeleteStudentModal()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <tbody id="studentsTableBody">
                         <!-- Data will be populated by JS -->
                     </tbody>
@@ -217,12 +399,16 @@
         <section class="content-section" id="sections-section">
             <div class="section-header">
                 <h2>Manage Sections</h2>
-                <button class="btn-primary">
+                <button class="btn-primary" id="addSectionBtn">
                     <i class="fas fa-plus-circle"></i>
                     Add New Section
                 </button>
             </div>
-            <div class="cards-grid">
+            <!-- Sections Cards -->
+            <div class="cards-grid" id="sectionsContainer">
+                <!-- Dynamic cards will be injected here -->
+            </div>
+            <!-- <div class="cards-grid">
                 <div class="info-card">
                     <h3>Section A</h3>
                     <p>Students: 25</p>
@@ -233,76 +419,207 @@
                     <p>Students: 30</p>
                     <button class="btn-secondary">View Details</button>
                 </div>
+            </div> -->
+
+            <div class="modal" id="addSectionModal" style="display:none;">
+                <div class="modal-content">
+                    <h3>Add New Section</h3>
+
+                    <input type="text" id="sectionNameInput" placeholder="Enter Section Name" />
+
+                    <div class="modal-actions">
+                        <button class="btn-secondary" onclick="closeSectionModal()">Cancel</button>
+                        <button class="btn-primary" onclick="saveSection()">Save</button>
+                    </div>
+                </div>
             </div>
+
         </section>
 
         <!-- All Courses Section (Previously Manage Subjects) -->
         <section class="content-section" id="courses-section">
             <div class="section-header">
                 <h2>Available Courses</h2>
+                <button class="btn-primary" id="addCourseBtn" onclick="openAddCourseModal()">
+                    <i class="fas fa-plus-circle"></i>
+                    Add New Course
+                </button>
             </div>
-            <div class="cards-grid">
-                <!-- Read Only Course Cards -->
-                <div class="info-card">
-                    <h3>WEB DEVELOPMENT</h3>
-                    <p>Code: WEB101</p>
-                    <button class="btn-secondary" disabled>View Details</button>
-                </div>
-                <div class="info-card">
-                    <h3>SQL DATABASE</h3>
-                    <p>Code: SQL101</p>
-                    <button class="btn-secondary" disabled>View Details</button>
-                </div>
-                <div class="info-card">
-                    <h3>REACT FRAMEWORK</h3>
-                    <p>Code: RF101</p>
-                    <button class="btn-secondary" disabled>View Details</button>
-                </div>
-                <div class="info-card">
-                    <h3>CORE JAVA</h3>
-                    <p>Code: JP101</p>
-                    <button class="btn-secondary" disabled>View Details</button>
-                </div>
-                <div class="info-card">
-                    <h3>ADVANCED JAVA</h3>
-                    <p>Code: JP102</p>
-                    <button class="btn-secondary" disabled>View Details</button>
-                </div>
+            <div class="cards-grid" id="facultyCoursesContainer">
+                <!-- Dynamic cards -->
             </div>
-        </section>
 
+            <!-- <div class="cards-grid">
+
+            </div> -->
+            <!-- ADD COURSE MODAL -->
+            <!-- <div class="modal1" id="addCourseModal" style="display:none;">
+                <div class="modal-content">
+                    <h3>Add New Course</h3>
+
+                    <input id="courseName" placeholder="Course Name" />
+                    <input id="courseCode" placeholder="Course Code" />
+                    <input id="courseDuration" placeholder="Duration (e.g. 3 Months)" />
+                    <input id="coursePrice" placeholder="Price" />
+                    <textarea id="courseDescription" placeholder="Description"></textarea>
+
+                    <div class="modal-actions">
+                        <button class="btn-secondary" onclick="closeCourseModal()">Cancel</button>
+                        <button class="btn-primary" onclick="saveCourse()">Save Course</button>
+                    </div>
+                </div>
+            </div> -->
+
+            <!-- ================= Add Course Modal ================= -->
+            <div id="addCourseModal" class="modal-overlay">
+                <div class="modal-box">
+                    <h3>Add Course</h3>
+
+                    <form id="addCourseForm">
+                        <div class="form-group">
+                            <label>Course Name</label>
+                            <input type="text" id="courseName" placeholder="Course Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course Code</label>
+                            <input type="text" id="courseCode" placeholder="Course Code" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course Duration</label>
+                            <input type="text" id="courseDuration" placeholder="Duration" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course Price</label>
+                            <input type="number" id="coursePrice" placeholder="Price" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Course Description</label>
+                            <textarea id="courseDescription" placeholder="Description" required></textarea>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-primary">Save</button>
+                            <button type="button" class="btn-secondary" onclick="closeAddCourseModal()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ================= Edit Course Modal ================= -->
+            <div id="editCourseModal" class="modal-overlay">
+                <div class="modal-box">
+                    <h3>Edit Course</h3>
+
+                    <form id="editCourseForm">
+                        <input type="hidden" id="editCourseId" />
+
+                        <input type="text" id="editCourseName" required />
+                        <input type="text" id="editCourseCode" required />
+                        <input type="text" id="editCourseDuration" required />
+                        <input type="number" id="editCoursePrice" required />
+                        <textarea id="editCourseDescription" required></textarea>
+
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-primary">Update</button>
+                            <button type="button" class="btn-secondary" onclick="closeEditCourseModal()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+
+        </section>
         <!-- Account Settings -->
         <section class="content-section" id="account-section">
             <div class="section-header">
                 <h2>Account Settings</h2>
             </div>
-            <div class="form-container">
-                <form class="settings-form">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="settingsName" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="settingsEmail" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Phone Number</label>
-                            <input type="tel" id="settingsPhone" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Role</label>
-                            <input type="text" id="settingsRole" readonly>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">Save Changes</button>
-                </form>
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <img src="../../assets/images/Frame-2147224445-6.png" class="profile-pic">
+                <h2 id="displayName">Mohd Muddabiruszama</h2>
+                <p class="role-text">Faculty</p>
             </div>
+
+            <!-- Contact Info -->
+            <div class="card">
+                <h3>Contact Information</h3>
+
+                <i class="fas fa-user icon-left"></i>
+                <label>Faculty ID</label>
+                <input type="text" id="settingsID" placeholder="ID" readonly>
+
+                <i class="fas fa-user icon-left"></i>
+                <label>Full Name</label>
+                <input type="text" id="settingsName" placeholder="Name" readonly>
+
+                <i class="fas fa-envelope icon-left"></i>
+                <label>Email</label>
+                <input type="email" id="settingsEmail" placeholder="Email" readonly>
+
+                <i class="fas fa-phone icon-left"></i>
+                <label>Phone</label>
+                <input type="tel" id="settingsPhone" placeholder="Phone Number" readonly maxlength="10" value="+91 "
+                    inputmode="numeric" pattern="[0-9]{10}" />
+
+                <i class="fas fa-map-marker-alt icon-left"></i>
+                <label>Address</label>
+                <input type="text" id="settingsAddress" placeholder="Address" readonly>
+            </div>
+
+            <!-- Password Section -->
+            <div class="card password-section" id="passwordSection">
+                <h3>Change Password</h3>
+
+                <i class="fas fa-lock icon-left"></i>
+                <label>Current Password</label>
+                <input type="password" id="currentPassword">
+
+                <i class="fas fa-lock icon-left"></i>
+                <label>New Password</label>
+                <input type="password" id="newPassword">
+
+                <i class="fas fa-lock icon-left"></i>
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPassword">
+            </div>
+
+            <!-- Buttons -->
+            <div class="btn-group">
+                <button id="editBtn" onclick="enableEdit()">Edit Profile</button>
+                <button id="saveBtn" disabled>Save Changes</button>
+            </div>
+
         </section>
     </main>
 
+    <!-- Notification Sidebar -->
+    <div class="notification-overlay" id="notificationOverlay">
+        <div class="notification-sidebar">
+            <div class="notification-header">
+                <h3><i class="fas fa-bell"></i> Notifications</h3>
+                <button class="close-btn" id="closeNotificationBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="notification-content" id="notificationContent">
+                <div class="loading-spinner" id="notificationLoading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
+                <div id="announcementsListNotification">
+                    <!-- Announcements will be loaded here -->
+                </div>
+                <div class="no-notifications" id="noNotifications" style="display: none;">
+                    <i class="fas fa-inbox"></i>
+                    <p>No announcements yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../../assets/js/script.js"></script>
+    <!-- <script src="../../assets/js/studentDashboard.js"></script> -->
     <script src="../../assets/js/facultyDashboard.js"></script>
 </body>
 

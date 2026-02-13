@@ -1,3 +1,5 @@
+const JWT_SECRET = process.env.JWT_SECRET || "my_super_secret_key";
+
 module.exports = {
-    JWT_SECRET: "MY_SECRET_KEY"
+    JWT_SECRET
 };
